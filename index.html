@@ -1,0 +1,1279 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#22292C">
+<meta name="color-scheme" content="light">
+<title>Visitas de obra</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+@font-face{font-family:"Barlow";font-weight:400;font-display:swap;src:url(fonts/barlow-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-weight:500;font-display:swap;src:url(fonts/barlow-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-weight:600;font-display:swap;src:url(fonts/barlow-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format("woff2")}
+
+:root{
+  --hormigon:#E4E6E1; --papel:#F8F9F6; --tinta:#22292C; --tinta2:#566066; --linea:#C5CAC4;
+  --plano:#2C5A7A; --cinta:#F5B800; --cinta2:#D9A300; --alerta:#B3261E; --verde:#2E7D6B;
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0;height:100%}
+html{scroll-padding-top:calc(64px + env(safe-area-inset-top,0px))}
+body{background:var(--hormigon);color:var(--tinta);font:400 16px/1.45 var(--sans);-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--plano);outline-offset:2px}
+
+/* Cabecera */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--tinta);color:#fff;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px}
+.top-txt{flex:1;min-width:0}
+.top h1{margin:0;font:700 23px/1.1 var(--cond);letter-spacing:.2px}
+.top p{margin:1px 0 0;font-size:14px;color:#B9C1C4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{width:44px;height:44px;border:0;border-radius:8px;background:transparent;color:#fff;display:grid;place-items:center;cursor:pointer}
+.icon-btn:active{background:#343d41}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:5px;background:
+  repeating-linear-gradient(90deg,var(--tinta) 0 1px,transparent 1px 10px) top left/100% 3px no-repeat,var(--cinta)}
+
+main{flex:1;width:100%;max-width:640px;margin:0 auto;padding:18px 16px 24px}
+.view{display:none}
+.view.on{display:block}
+
+/* Bloques */
+.blk{padding:6px 0 22px;border-bottom:1px solid var(--linea);margin-bottom:18px}
+.blk.end{border:0;text-align:center;padding-top:0}
+h2{margin:0 0 10px;font:700 22px/1.15 var(--cond);letter-spacing:.2px}
+h2 em,.fld em{font-style:normal;font-weight:400;color:var(--tinta2);font-family:var(--sans);font-size:15px}
+h2.big{font-size:28px;margin-bottom:14px}
+.hint{margin:-4px 0 12px;color:var(--tinta2);font-size:15px}
+
+.fld{display:block;margin-bottom:12px}
+.fld>span{display:block;font-weight:600;font-size:15px;margin-bottom:4px}
+input,select,textarea{width:100%;background:var(--papel);border:1px solid var(--linea);border-radius:6px;padding:11px 12px;min-height:46px}
+textarea{resize:vertical;line-height:1.4}
+input:focus,select:focus,textarea:focus{border-color:var(--plano);outline:2px solid var(--plano);outline-offset:-1px}
+.row2{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+
+/* Miniaturas */
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.th{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:#cfd3cd}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.th .x{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(34,41,44,.82);color:#fff;font-size:20px;line-height:1;cursor:pointer}
+.th .n{position:absolute;left:4px;bottom:4px;min-width:24px;padding:1px 6px;border-radius:4px;background:var(--cinta);color:var(--tinta);font:700 14px/1.3 var(--cond);text-align:center}
+.add{aspect-ratio:1;border:2px dashed #9aa29c;border-radius:6px;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--tinta2);font-weight:600;font-size:14px;cursor:pointer}
+.add b{font:600 34px/1 var(--cond);color:var(--tinta)}
+.add:active{background:#d8dbd5}
+
+/* Grabadora */
+.recorder{background:var(--tinta);color:#fff;border-radius:10px;padding:14px 14px 10px}
+.rec-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.timer{font:700 46px/1 var(--cond);font-variant-numeric:tabular-nums;letter-spacing:.5px}
+.rec-state{color:#B9C1C4;font-size:15px;text-align:right}
+.rec-state.live{color:var(--cinta)}
+#tape{display:block;width:100%;height:64px}
+.rec-ctl{display:flex;justify-content:center;padding:14px 0 6px}
+.rec{width:84px;height:84px;border-radius:50%;border:5px solid #fff;background:var(--cinta);display:grid;place-items:center;cursor:pointer;transition:transform .12s}
+.rec::after{content:"";width:30px;height:30px;border-radius:50%;background:var(--alerta);transition:border-radius .15s,width .15s,height .15s}
+.rec.on::after{width:26px;height:26px;border-radius:4px;background:var(--tinta)}
+.rec:active{transform:scale(.95)}
+.rec:disabled{opacity:.5}
+.segs{list-style:none;margin:6px 0 0;padding:0}
+.segs li{display:flex;align-items:center;gap:8px;border-top:1px solid #3a4448;padding:6px 0}
+.segs .lbl{flex:1;font-weight:500}
+.segs .dur{font:600 18px var(--cond);color:#B9C1C4;font-variant-numeric:tabular-nums}
+.segs button{width:40px;height:40px;border:0;border-radius:8px;background:#343d41;color:#fff;display:grid;place-items:center;cursor:pointer}
+.segs .tx{color:var(--cinta);font-size:13px}
+
+/* Botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:8px;border:1.5px solid var(--tinta);background:var(--papel);font-weight:600;font-size:17px;cursor:pointer;text-decoration:none}
+.btn.primary{background:var(--tinta);color:#fff}
+.btn.primary:disabled{background:#8d969a;border-color:#8d969a}
+.btn.wide{width:100%}
+.btn+.btn.wide{margin-top:10px}
+.link{border:0;background:none;color:var(--plano);font-weight:600;text-decoration:underline;text-underline-offset:3px;padding:10px;cursor:pointer;font-size:16px}
+.link.danger{color:var(--alerta)}
+.bar{position:sticky;bottom:0;z-index:5;background:var(--hormigon);border-top:1px solid var(--linea);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar>div{max-width:608px;margin:0 auto}
+.bar .note{margin:0 0 8px;color:var(--tinta2);font-size:14px;text-align:center}
+
+/* Progreso */
+.steps{list-style:none;margin:0 0 18px;padding:0;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--linea)}
+.steps li::before{content:counter(s);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:700 18px var(--cond);background:#d3d7d1;color:var(--tinta2)}
+.steps li.run::before{background:var(--cinta);color:var(--tinta);animation:pulse 1.2s ease-in-out infinite}
+.steps li.ok::before{content:"✓";background:var(--verde);color:#fff}
+.steps li.err::before{content:"!";background:var(--alerta);color:#fff}
+.steps b{display:block;font-weight:600}
+.steps small{color:var(--tinta2);font-size:14px}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(245,184,0,.3)}}
+.err{background:#f6dcd9;border-left:4px solid var(--alerta);padding:10px 12px;border-radius:4px;margin:0 0 14px}
+.row-btns{display:flex;gap:10px}
+.row-btns .btn{flex:1}
+
+/* Revisión */
+.rv-sec{padding:4px 0 18px;border-bottom:1px solid var(--linea);margin-bottom:16px}
+.rv-sec>h2{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rv-sec>h2 small{font:500 15px var(--sans);color:var(--tinta2)}
+.warnbox{background:#FFF3C4;border-left:4px solid var(--cinta2);padding:12px 14px;border-radius:4px;margin-bottom:18px}
+.warnbox h2{font-size:20px;margin-bottom:4px}
+.warnbox p{margin:0 0 8px;color:var(--tinta2);font-size:14px}
+.item{background:var(--papel);border:1px solid var(--linea);border-radius:8px;padding:10px;margin-bottom:10px}
+.item textarea,.item input,.item select{background:#fff}
+.item-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.item-h b{flex:1;font:700 18px var(--cond)}
+.del{width:40px;height:40px;flex:none;border:0;border-radius:8px;background:transparent;color:var(--alerta);display:grid;place-items:center;cursor:pointer}
+.del:active{background:#f0d6d3}
+.line{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
+.line>textarea,.line>input{flex:1}
+.grid3{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.grid3 .full{grid-column:1/-1}
+.grp{margin:14px 0 6px;display:flex;align-items:center;gap:8px;font:700 19px/1.2 var(--cond)}
+.grp i{width:6px;height:22px;border-radius:2px;flex:none}
+.grp span{font:500 14px var(--sans);color:var(--tinta2)}
+.pend{border-left-width:6px}
+.empty{color:var(--tinta2);font-size:15px;margin:2px 0 6px}
+.addrow{border:1.5px dashed #9aa29c;background:transparent;border-radius:8px;min-height:44px;width:100%;font-weight:600;color:var(--tinta2);cursor:pointer}
+.mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mini img{width:56px;height:56px;object-fit:cover;border-radius:4px}
+.foto-item{display:grid;grid-template-columns:96px 1fr;gap:10px}
+.foto-item img{width:96px;height:96px;object-fit:cover;border-radius:6px}
+.foto-item .n{font:700 18px var(--cond);margin-bottom:4px}
+details.trans summary{cursor:pointer;font:700 20px var(--cond);padding:6px 0}
+details.trans textarea{min-height:200px;margin:8px 0}
+
+/* Final */
+.done{text-align:center;padding-top:20px}
+.done-mark{width:84px;height:84px;margin:0 auto 14px;border-radius:50%;background:var(--verde);color:#fff;display:grid;place-items:center;font:700 44px var(--cond)}
+.done .hint{margin:0 0 20px;word-break:break-word}
+
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tinta);color:#fff;padding:10px 16px;border-radius:8px;font-size:15px;z-index:20;max-width:90vw;text-align:center}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-txt"><h1>Visita de obra</h1><p id="topSub">Nueva visita</p></div>
+  <button class="icon-btn" id="btnSettings" aria-label="Ajustes">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+</header>
+
+<main>
+  <!-- Captura -->
+  <section class="view" id="vCapture">
+    <div class="blk">
+      <h2>Datos de la visita</h2>
+      <label class="fld"><span>Obra</span><input id="fObra" list="obrasList" autocomplete="off" placeholder="Nombre de la obra"></label>
+      <datalist id="obrasList"></datalist>
+      <label class="fld"><span>Ubicación</span><input id="fDir" autocomplete="off" placeholder="Dirección o municipio"></label>
+      <div class="row2">
+        <label class="fld"><span>Fecha</span><input id="fFecha" type="date"></label>
+        <label class="fld"><span>Visita nº</span><input id="fNum" type="number" inputmode="numeric" min="1"></label>
+      </div>
+      <label class="fld"><span>Asistentes <em>(opcional)</em></span><textarea id="fAsis" rows="3" placeholder="Uno por línea. Por ejemplo: Marta Ruiz, Propiedad"></textarea></label>
+    </div>
+
+    <div class="blk">
+      <h2>Notas a mano</h2>
+      <p class="hint">Fotografía tus notas en papel. Se leerán y cada punto entrará en el informe.</p>
+      <div class="thumbs" id="tNotas"></div>
+      <input type="file" id="inNotas" accept="image/*" multiple hidden>
+    </div>
+
+    <div class="blk">
+      <h2>Fotos de la visita</h2>
+      <p class="hint">Saldrán en el informe, numeradas y con pie de foto.</p>
+      <div class="thumbs" id="tFotos"></div>
+      <input type="file" id="inFotos" accept="image/*" multiple hidden>
+    </div>
+
+    <div class="blk">
+      <h2>Resumen hablado</h2>
+      <p class="hint">Lee tus notas y cuenta todo lo que recuerdes: qué se revisó, quién pidió qué, qué se decidió y qué queda pendiente de cada uno.</p>
+      <div class="recorder">
+        <div class="rec-top"><span class="timer" id="timer">0:00</span><span class="rec-state" id="recState">Listo para grabar</span></div>
+        <canvas id="tape" aria-hidden="true"></canvas>
+        <div class="rec-ctl"><button class="rec" id="btnRec" aria-label="Empezar a grabar"></button></div>
+        <ol class="segs" id="segs"></ol>
+      </div>
+    </div>
+
+    <div class="blk">
+      <h2>Notas escritas <em>(opcional)</em></h2>
+      <textarea id="fTexto" rows="4" placeholder="Lo que prefieras escribir en vez de decir."></textarea>
+    </div>
+
+    <div class="blk end"><button class="link danger" id="btnNewVisit">Empezar una visita nueva</button></div>
+  </section>
+
+  <!-- Progreso -->
+  <section class="view" id="vProgress">
+    <h2 class="big">Preparando el informe</h2>
+    <ol class="steps" id="steps"></ol>
+    <p class="hint" id="progHint">Mantén la app abierta. La pantalla no se apagará mientras trabaja.</p>
+    <div class="err" id="progErr" hidden></div>
+    <div class="row-btns" id="progBtns" hidden>
+      <button class="btn primary" id="btnRetry">Reintentar</button>
+      <button class="btn" id="btnBackCapture">Volver</button>
+    </div>
+  </section>
+
+  <!-- Revisión -->
+  <section class="view" id="vReview">
+    <p style="margin:0 0 10px"><button class="link" id="btnToCapture" style="padding-left:0">Volver a la captura</button></p>
+    <h2 class="big">Revisa el informe</h2>
+    <p class="hint">Todo es editable. Los cambios se guardan solos en el móvil.</p>
+    <div id="rv"></div>
+  </section>
+
+  <!-- Final -->
+  <section class="view" id="vDone">
+    <div class="done">
+      <div class="done-mark" aria-hidden="true">✓</div>
+      <h2 class="big">Informe en PDF listo</h2>
+      <p class="hint" id="pdfName"></p>
+      <button class="btn primary wide" id="btnShare">Compartir PDF</button>
+      <button class="btn wide" id="btnDownload">Descargar PDF</button>
+      <button class="btn wide" id="btnBackReview">Volver al informe</button>
+      <p><button class="link danger" id="btnNewVisit2">Empezar una visita nueva</button></p>
+    </div>
+  </section>
+
+  <!-- Ajustes -->
+  <section class="view" id="vSettings">
+    <h2 class="big">Ajustes</h2>
+    <label class="fld"><span>URL del proxy</span><input id="sProxy" type="url" inputmode="url" autocomplete="off" placeholder="https://visitas-obra.TUCUENTA.workers.dev"></label>
+    <label class="fld"><span>Token de la app</span><input id="sToken" type="password" autocomplete="off" placeholder="El APP_TOKEN del worker"></label>
+    <label class="fld"><span>Tu nombre</span><input id="sNombre" autocomplete="name"></label>
+    <div class="row2">
+      <label class="fld"><span>Cargo</span><input id="sCargo"></label>
+      <label class="fld"><span>Empresa</span><input id="sEmpresa"></label>
+    </div>
+    <button class="btn wide" id="btnTest">Probar conexión</button>
+    <p class="hint" id="testMsg" style="margin-top:10px"></p>
+    <p class="hint">Los ajustes se guardan solo en este móvil.</p>
+    <p><button class="link" id="btnCloseSettings" style="padding-left:0">Cerrar sin guardar</button></p>
+  </section>
+</main>
+
+<footer class="bar">
+  <div id="fCapture"><p class="note" id="capNote" hidden></p><button class="btn primary wide" id="btnGenerate">Generar informe</button></div>
+  <div id="fReview" hidden><button class="btn primary wide" id="btnPdf">Crear PDF</button></div>
+  <div id="fSettings" hidden><button class="btn primary wide" id="btnSaveSettings">Guardar ajustes</button></div>
+</footer>
+
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js"></script>
+<script>
+'use strict';
+// ---------- Generador del PDF (sin dependencias del DOM) ----------
+const ROLES = [
+  { k: 'Propiedad', c: '#7A4E9C', t: () => 'Pendiente de la Propiedad' },
+  { k: 'Dirección Facultativa', c: '#2C5A7A', t: () => 'Pendiente de la Dirección Facultativa' },
+  { k: 'Dirección de Ejecución', c: '#2E7D6B', t: () => 'Pendiente de la Dirección de Ejecución' },
+  { k: 'Jefe de obra', c: '#B86E00', t: e => e + ': jefe de obra' },
+  { k: 'Encargado', c: '#8A5A2B', t: e => e + ': encargado' },
+  { k: 'Otros', c: '#6B7278', t: () => 'Otros agentes' },
+];
+
+// Las fuentes estándar del PDF solo cubren Latin-1 y los signos de Windows-1252.
+const CP1252 = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
+function pdfText(s) {
+  return String(s == null ? '' : s)
+    .replace(/[→⇒]/g, '->').replace(/[←⇐]/g, '<-').replace(/≥/g, '>=').replace(/≤/g, '<=')
+    .replace(/≈/g, '~').replace(/²/g, '2').replace(/³/g, '3').replace(/[−‐‑]/g, '-').replace(/[\u2002-\u200B\u202F]/g, ' ')
+    .replace(/[^\n\x20-\xFF]/g, ch => (CP1252.includes(ch) ? ch : ''));
+}
+
+function fechaLarga(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T12:00:00Z');
+  if (isNaN(d)) return iso;
+  const s = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function fechaCorta(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : (iso || '');
+}
+
+function buildPdf(jsPDF, d) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+  const W = 210, H = 297, M = 16, CW = W - 2 * M, BOTTOM = H - 20;
+  const C = { tinta: [34, 41, 44], gris: [92, 101, 106], linea: [200, 205, 199], plano: [44, 90, 122], cinta: [245, 184, 0], fondo: [240, 242, 237], blanco: [255, 255, 255] };
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const I = d.informe || {};
+  const lh = pt => pt * 0.3528 * 1.38;
+  let y = 0;
+
+  const font = (style, size, color = C.tinta) => { doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(...color); };
+  const newPage = () => { doc.addPage(); y = M + 2; };
+  const need = h => { if (y + h > BOTTOM) newPage(); };
+  const write = (text, { size = 10, style = 'normal', color = C.tinta, x = M, w = CW, after = 1.6 } = {}) => {
+    const src = pdfText(text).trim();
+    if (!src) return;
+    font(style, size, color);
+    for (const p of src.split(/\n+/)) {
+      for (const ln of doc.splitTextToSize(p.trim(), w)) {
+        need(lh(size));
+        doc.text(ln, x, y, { baseline: 'top' });
+        y += lh(size);
+      }
+      y += after;
+    }
+  };
+  const heading = t => {
+    need(26);
+    y += 4;
+    font('bold', 14, C.plano);
+    doc.text(pdfText(t), M, y, { baseline: 'top' });
+    y += lh(14) + 0.5;
+    doc.setDrawColor(...C.plano); doc.setLineWidth(0.5); doc.line(M, y, M + CW, y);
+    y += 4;
+  };
+  const table = opts => {
+    doc.autoTable({
+      startY: y,
+      margin: { left: M, right: M, top: M + 2, bottom: 22 },
+      theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 9, cellPadding: 1.8, textColor: C.tinta, lineColor: C.linea, lineWidth: 0.1, valign: 'top', overflow: 'linebreak' },
+      alternateRowStyles: { fillColor: C.fondo },
+      ...opts,
+      head: opts.head && opts.head.map(r => r.map(pdfText)),
+      body: opts.body.map(r => r.map(pdfText)),
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  };
+
+  // Cabecera
+  doc.setFillColor(...C.tinta); doc.rect(0, 0, W, 40, 'F');
+  doc.setFillColor(...C.cinta); doc.rect(0, 40, W, 5, 'F');
+  doc.setDrawColor(...C.tinta); doc.setLineWidth(0.2);
+  for (let i = 0, k = 0; i <= W; i += 2, k++) doc.line(i, 40, i, 40 + (k % 10 === 0 ? 3.4 : k % 5 === 0 ? 2.3 : 1.2));
+  font('normal', 10, [190, 198, 201]);
+  doc.text('Informe de visita de obra', M, 10, { baseline: 'top' });
+  font('bold', 20, C.blanco);
+  doc.text(doc.splitTextToSize(pdfText(d.obra || 'Obra sin nombre'), CW).slice(0, 2), M, 16.5, { baseline: 'top', lineHeightFactor: 1.15 });
+
+  // Datos
+  y = 52;
+  const meta = [
+    ['Fecha de la visita', fechaLarga(d.fecha)],
+    ['Visita nº', d.num ? String(d.num) : '-'],
+    ['Ubicación', d.dir || '-'],
+    ['Redacta', [d.nombre, d.cargo].filter(Boolean).join(', ') + (d.empresa ? ` (${d.empresa})` : '')],
+  ];
+  const colW = CW / 2 - 4;
+  for (let r = 0; r < meta.length; r += 2) {
+    let rowH = 0;
+    meta.slice(r, r + 2).forEach(([k, v], j) => {
+      const x = M + j * (CW / 2);
+      font('normal', 8.5, C.gris); doc.text(pdfText(k), x, y, { baseline: 'top' });
+      font('bold', 10.5, C.tinta);
+      const lines = doc.splitTextToSize(pdfText(v || '-'), colW);
+      doc.text(lines, x, y + 4.2, { baseline: 'top', lineHeightFactor: 1.3 });
+      rowH = Math.max(rowH, 4.2 + lines.length * lh(10.5));
+    });
+    y += rowH + 4;
+  }
+
+  // Resumen
+  if (I.resumen) { heading('Resumen'); write(I.resumen, { size: 10.5 }); }
+
+  // Asistentes
+  const asis = (I.asistentes || []).filter(a => a && a.nombre);
+  if (asis.length) {
+    heading('Asistentes');
+    table({
+      head: [['Nombre', 'Rol', 'Entidad']],
+      body: asis.map(a => [a.nombre, a.rol || '', a.entidad || '']),
+      headStyles: { fillColor: C.tinta, textColor: 255, fontStyle: 'bold' },
+      columnStyles: { 0: { cellWidth: 58 }, 1: { cellWidth: 50 } },
+    });
+  }
+
+  // Temas
+  const temas = I.temas || [];
+  const fotosDeTema = n => (d.fotos || []).filter(f => f.tema === n).map(f => f.n);
+  if (temas.length) {
+    heading('Temas tratados');
+    temas.forEach((t, i) => {
+      need(18);
+      write(`${i + 1}. ${t.titulo || ''}`, { size: 11.5, style: 'bold', after: 1 });
+      write(t.descripcion || '', { size: 10 });
+      const fs = fotosDeTema(i + 1);
+      if (fs.length) write((fs.length > 1 ? 'Fotos ' : 'Foto ') + fs.join(', '), { size: 8.5, color: C.gris, after: 1 });
+      y += 2.5;
+    });
+  }
+
+  // Acuerdos
+  const acuerdos = (I.acuerdos || []).filter(a => a && a.descripcion);
+  if (acuerdos.length) {
+    heading('Acuerdos');
+    acuerdos.forEach((a, i) => {
+      const lines = doc.splitTextToSize(pdfText(a.descripcion), CW - 8);
+      need(lh(10) * Math.min(lines.length, 3));
+      font('bold', 10, C.plano); doc.text(String(i + 1) + '.', M, y, { baseline: 'top' });
+      font('normal', 10, C.tinta);
+      for (const ln of lines) { need(lh(10)); doc.text(ln, M + 8, y, { baseline: 'top' }); y += lh(10); }
+      if (a.tema && temas[a.tema - 1]) write(`Tema ${a.tema}: ${temas[a.tema - 1].titulo}`, { size: 8.5, color: C.gris, x: M + 8, w: CW - 8, after: 0 });
+      y += 2.2;
+    });
+  }
+
+  // Pendientes
+  const pend = (I.pendientes || []).filter(p => p && p.descripcion);
+  if (pend.length) {
+    heading('Pendientes por responsable');
+    for (const role of ROLES) {
+      const items = pend.filter(p => (p.responsable || 'Otros') === role.k);
+      if (!items.length) continue;
+      need(26);
+      doc.setFillColor(...hex(role.c)); doc.rect(M, y + 0.3, 2.2, 5.2, 'F');
+      font('bold', 11.5, C.tinta);
+      doc.text(pdfText(role.t(d.empresa || 'Contratista')) + `  (${items.length})`, M + 4.5, y, { baseline: 'top' });
+      y += 7.5;
+      table({
+        head: [['Nº', 'Descripción', 'Tipo', 'Plazo', 'Prioridad']],
+        body: items.map((p, i) => [String(i + 1), p.descripcion + (p.tema && temas[p.tema - 1] ? `\nTema ${p.tema}: ${temas[p.tema - 1].titulo}` : ''), p.tipo || '', p.plazo || '', p.prioridad || '']),
+        headStyles: { fillColor: hex(role.c), textColor: 255, fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 9, halign: 'center' }, 2: { cellWidth: 28 }, 3: { cellWidth: 28 }, 4: { cellWidth: 19 } },
+        didParseCell: c => { if (c.section === 'body' && c.column.index === 4 && c.cell.raw === 'Alta') { c.cell.styles.fontStyle = 'bold'; c.cell.styles.textColor = [179, 38, 30]; } },
+      });
+    }
+  }
+
+  // Próxima visita
+  if (I.proxima_visita && I.proxima_visita.trim()) { heading('Próxima visita'); write(I.proxima_visita, { size: 10.5 }); }
+
+  // Reportaje fotográfico
+  const fotos = d.fotos || [];
+  if (fotos.length) {
+    newPage();
+    heading('Reportaje fotográfico');
+    const gap = 6, cw = (CW - gap) / 2, boxH = 64, capSize = 8.8;
+    const caption = f => {
+      const tema = f.tema && temas[f.tema - 1] ? `Tema ${f.tema}: ${temas[f.tema - 1].titulo}` : '';
+      font('bold', capSize); const a = doc.splitTextToSize(pdfText(`Foto ${f.n}. ${f.pie || ''}`), cw);
+      font('normal', capSize); const b = tema ? doc.splitTextToSize(pdfText(tema), cw) : [];
+      return { a: a.slice(0, 4), b: b.slice(0, 2) };
+    };
+    for (let i = 0; i < fotos.length; i += 2) {
+      const pair = fotos.slice(i, i + 2).map(f => ({ f, cap: caption(f) }));
+      const capLines = Math.max(...pair.map(p => p.cap.a.length + p.cap.b.length));
+      const rowH = boxH + 2.5 + capLines * lh(capSize) + 7;
+      need(rowH);
+      pair.forEach(({ f, cap }, j) => {
+        const x = M + j * (cw + gap);
+        doc.setFillColor(...C.fondo); doc.rect(x, y, cw, boxH, 'F');
+        const s = Math.min(cw / f.w, boxH / f.h);
+        const iw = f.w * s, ih = f.h * s;
+        try { doc.addImage(f.url, 'JPEG', x + (cw - iw) / 2, y + (boxH - ih) / 2, iw, ih, undefined, 'FAST'); } catch (e) { /* imagen dañada: se deja el hueco */ }
+        let cy = y + boxH + 2.5;
+        font('bold', capSize, C.tinta); doc.text(cap.a, x, cy, { baseline: 'top', lineHeightFactor: 1.38 }); cy += cap.a.length * lh(capSize);
+        if (cap.b.length) { font('normal', capSize, C.gris); doc.text(cap.b, x, cy, { baseline: 'top', lineHeightFactor: 1.38 }); }
+      });
+      y += rowH;
+    }
+  }
+
+  // Pie de página
+  const n = doc.getNumberOfPages();
+  const pie = pdfText([d.obra, d.num ? 'Visita nº ' + d.num : '', fechaCorta(d.fecha)].filter(Boolean).join('  |  '));
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(...C.linea); doc.setLineWidth(0.3); doc.line(M, H - 13, W - M, H - 13);
+    font('normal', 8, C.gris);
+    doc.text(doc.splitTextToSize(pie, CW - 30)[0] || '', M, H - 9);
+    doc.text(`Página ${i} de ${n}`, W - M, H - 9, { align: 'right' });
+  }
+  return doc;
+}
+
+// ---------- App ----------
+const $ = id => document.getElementById(id);
+const SEG_MS = 180000;     // cada 3 minutos se cierra un tramo de audio y empieza otro
+const OVERLAP_MS = 1200;   // solape entre tramos para no cortar palabras
+const TIPOS = ['Decisión', 'Tarea', 'Documentación', 'Información'];
+const PRIOS = ['Alta', 'Media', 'Baja'];
+
+// Almacenamiento: prefijo propio para no mezclarse con otras apps del mismo dominio
+const store = {
+  get(k, d = null) { try { const v = localStorage.getItem('vo:' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('vo:' + k, JSON.stringify(v)); } catch { } },
+};
+const idb = (() => {
+  let p;
+  const open = () => p || (p = new Promise((res, rej) => {
+    const r = indexedDB.open('visitas-obra', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  }));
+  const tx = async (mode, fn) => {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const t = db.transaction('kv', mode);
+      const req = fn(t.objectStore('kv'));
+      t.oncomplete = () => res(req && req.result);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error);
+    });
+  };
+  return {
+    get: k => tx('readonly', s => s.get(k)),
+    put: (k, v) => tx('readwrite', s => s.put(v, k)),
+    del: k => tx('readwrite', s => s.delete(k)),
+    clear: () => tx('readwrite', s => s.clear()),
+  };
+})();
+
+const settings = () => ({ proxy: '', token: '', nombre: '', cargo: 'Jefe de obra', empresa: 'Voracys', ...store.get('settings', {}) });
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const fmt = s => { s = Math.max(0, Math.round(s)); const m = Math.floor(s / 60); return m + ':' + String(s % 60).padStart(2, '0'); };
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+function toast(msg, ms = 2600) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; t.setAttribute('role', 'status');
+  document.body.append(t); setTimeout(() => t.remove(), ms);
+}
+
+// ---------- Visita actual ----------
+const newVisit = () => ({ id: uid(), obra: '', dir: '', fecha: todayISO(), num: '', asis: '', texto: '', notas: [], fotos: [], audios: [], audioSecs: 0, transcript: '', informe: null, stage: 'capture' });
+let V = newVisit();
+const saveNow = () => idb.put('visit', V).catch(e => console.error(e));
+const saveV = debounce(saveNow, 300);
+
+// ---------- Vistas ----------
+let current = 'capture', beforeSettings = 'capture';
+function show(name) {
+  current = name;
+  for (const v of ['Capture', 'Progress', 'Review', 'Done', 'Settings']) $('v' + v).classList.toggle('on', v.toLowerCase() === name);
+  $('fCapture').hidden = name !== 'capture';
+  $('fReview').hidden = name !== 'review';
+  $('fSettings').hidden = name !== 'settings';
+  document.querySelector('.bar').hidden = !['capture', 'review', 'settings'].includes(name);
+  if (name === 'capture') { requestAnimationFrame(sizeTape); updateGenerate(); }
+  updateTop();
+  window.scrollTo(0, 0);
+}
+function updateTop() {
+  $('topSub').textContent = current === 'settings' ? 'Ajustes' :
+    (V.obra ? V.obra + (V.num ? ', visita ' + V.num : '') : 'Nueva visita');
+}
+
+// ---------- Datos de la visita ----------
+const fields = { fObra: 'obra', fDir: 'dir', fFecha: 'fecha', fNum: 'num', fAsis: 'asis', fTexto: 'texto' };
+function fillFields() { for (const [id, k] of Object.entries(fields)) $(id).value = V[k] || ''; }
+for (const [id, k] of Object.entries(fields)) {
+  $(id).addEventListener('input', () => { V[k] = $(id).value; saveV(); updateGenerate(); if (k === 'obra' || k === 'num') updateTop(); });
+}
+$('fObra').addEventListener('change', () => {
+  const o = store.get('obras', {})[V.obra.trim()];
+  if (!o) return;
+  if (!V.dir && o.dir) V.dir = o.dir;
+  if (!V.num && o.num) V.num = String(Number(o.num) + 1);
+  if (!V.asis && o.asis) V.asis = o.asis;
+  fillFields(); saveV(); updateTop();
+});
+function fillObras() {
+  $('obrasList').innerHTML = '';
+  for (const name of Object.keys(store.get('obras', {}))) { const o = document.createElement('option'); o.value = name; $('obrasList').append(o); }
+}
+
+// ---------- Imágenes ----------
+const urls = new Map();
+async function blobUrl(id) {
+  if (urls.has(id)) return urls.get(id);
+  const b = await idb.get('b:' + id);
+  if (!b) return '';
+  const u = URL.createObjectURL(b); urls.set(id, u); return u;
+}
+function loadImg(blob) {
+  return new Promise((res, rej) => { const i = new Image(); const u = URL.createObjectURL(blob); i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.onerror = () => { URL.revokeObjectURL(u); rej(new Error('No se puede leer la imagen')); }; i.src = u; });
+}
+async function resizeImage(blob, max, q) {
+  let src;
+  try { src = await createImageBitmap(blob, { imageOrientation: 'from-image' }); } catch { src = await loadImg(blob); }
+  const sw = src.width, sh = src.height, s = Math.min(1, max / Math.max(sw, sh));
+  const w = Math.round(sw * s), h = Math.round(sh * s);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(src, 0, 0, w, h);
+  if (src.close) src.close();
+  const out = await new Promise(r => c.toBlob(r, 'image/jpeg', q));
+  return { blob: out, w, h };
+}
+const readAs = (blob, full) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(full ? r.result : String(r.result).split(',')[1]); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+
+async function addImages(files, kind) {
+  let n = 0;
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) continue;
+    try {
+      const { blob, w, h } = await resizeImage(f, 1600, 0.82);
+      const id = uid();
+      await idb.put('b:' + id, blob);
+      V[kind].push({ id, w, h });
+      n++;
+    } catch (e) { toast('Una imagen no se ha podido leer.'); }
+  }
+  await saveNow();
+  renderThumbs(kind); updateGenerate();
+  if (n && V.informe && kind === 'fotos') toast('Vuelve a generar el informe para que las nuevas fotos tengan pie.');
+}
+async function removeImage(kind, id) {
+  V[kind] = V[kind].filter(x => x.id !== id);
+  if (V.informe && kind === 'fotos') V.informe.fotos = (V.informe.fotos || []).filter(f => f.id !== id);
+  await idb.del('b:' + id); if (urls.has(id)) { URL.revokeObjectURL(urls.get(id)); urls.delete(id); }
+  await saveNow(); renderThumbs(kind); updateGenerate();
+}
+async function renderThumbs(kind) {
+  const box = $(kind === 'notas' ? 'tNotas' : 'tFotos');
+  const frag = document.createDocumentFragment();
+  for (const [i, it] of V[kind].entries()) {
+    const d = document.createElement('div'); d.className = 'th';
+    const img = new Image(); img.alt = kind === 'notas' ? 'Nota ' + (i + 1) : 'Foto ' + (i + 1); img.src = await blobUrl(it.id);
+    const x = document.createElement('button'); x.className = 'x'; x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Quitar ' + img.alt);
+    x.onclick = () => { if (confirm('¿Quitar esta imagen?')) removeImage(kind, it.id); };
+    d.append(img, x);
+    if (kind === 'fotos') { const n = document.createElement('span'); n.className = 'n'; n.textContent = i + 1; d.append(n); }
+    frag.append(d);
+  }
+  const add = document.createElement('button'); add.type = 'button'; add.className = 'add';
+  add.innerHTML = '<b>+</b>' + (kind === 'notas' ? 'Añadir notas' : 'Añadir fotos');
+  add.onclick = () => $(kind === 'notas' ? 'inNotas' : 'inFotos').click();
+  frag.append(add);
+  box.replaceChildren(frag);
+}
+$('inNotas').addEventListener('change', e => { addImages([...e.target.files], 'notas'); e.target.value = ''; });
+$('inFotos').addEventListener('change', e => { addImages([...e.target.files], 'fotos'); e.target.value = ''; });
+
+// ---------- Grabación ----------
+const rec = { on: false, stream: null, cur: null, timer: null, t0: 0, ctx: null, an: null, buf: null, raf: 0, pending: 0, lastLvl: 0, done: null };
+let levels = [];
+const totalSecs = () => V.audioSecs + (rec.on ? (performance.now() - rec.t0) / 1000 : 0);
+
+function pickMime() {
+  for (const m of ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus']) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+  return '';
+}
+async function startRec() {
+  if (!window.MediaRecorder) { alert('Este navegador no permite grabar audio. Usa Chrome en Android.'); return; }
+  try {
+    rec.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  } catch (e) {
+    alert('No hay acceso al micrófono. Permítelo en el candado de la barra de direcciones o en los permisos de la app.');
+    return;
+  }
+  try {
+    rec.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = rec.ctx.createMediaStreamSource(rec.stream);
+    rec.an = rec.ctx.createAnalyser(); rec.an.fftSize = 1024; rec.buf = new Float32Array(rec.an.fftSize);
+    src.connect(rec.an);
+  } catch { rec.an = null; }
+  rec.on = true; rec.t0 = performance.now(); rec.lastLvl = 0;
+  startSegment();
+  keepAwake(true);
+  $('btnRec').classList.add('on'); $('btnRec').setAttribute('aria-label', 'Parar la grabación');
+  $('recState').textContent = 'Grabando'; $('recState').classList.add('live');
+  $('btnGenerate').disabled = true;
+  loop();
+}
+function startSegment() {
+  const mime = pickMime();
+  const mr = new MediaRecorder(rec.stream, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : {});
+  const chunks = [], t0 = performance.now();
+  mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  mr.onstop = async () => {
+    const blob = new Blob(chunks, { type: (mr.mimeType || mime || 'audio/webm').split(';')[0] });
+    if (blob.size > 2000) {
+      const id = uid();
+      try {
+        await idb.put('b:' + id, blob);
+        V.audios.push({ id, dur: (performance.now() - t0) / 1000, type: blob.type, text: null });
+        await saveNow();
+      } catch (e) { alert('No se ha podido guardar un tramo de audio en el móvil: ' + e.message); }
+    }
+    renderSegs();
+    rec.pending--;
+    if (rec.pending === 0 && rec.done) rec.done();
+  };
+  rec.pending++;
+  mr.start(1000);
+  rec.cur = mr;
+  clearTimeout(rec.timer);
+  rec.timer = setTimeout(rotate, SEG_MS);
+}
+function rotate() {
+  if (!rec.on) return;
+  const old = rec.cur;
+  startSegment();
+  setTimeout(() => { if (old.state !== 'inactive') old.stop(); }, OVERLAP_MS);
+}
+async function stopRec() {
+  if (!rec.on) return;
+  clearTimeout(rec.timer);
+  V.audioSecs += (performance.now() - rec.t0) / 1000;
+  rec.on = false;
+  cancelAnimationFrame(rec.raf);
+  const finished = new Promise(r => { rec.done = r; });
+  if (rec.cur && rec.cur.state !== 'inactive') rec.cur.stop();
+  else if (rec.pending === 0) rec.done();
+  await finished; rec.done = null;
+  rec.stream.getTracks().forEach(t => t.stop());
+  if (rec.ctx) rec.ctx.close().catch(() => { });
+  keepAwake(false);
+  $('btnRec').classList.remove('on'); $('btnRec').setAttribute('aria-label', 'Seguir grabando');
+  $('recState').textContent = 'Pulsa para seguir grabando'; $('recState').classList.remove('live');
+  await saveNow();
+  drawTape(); updateTimer(); updateGenerate();
+}
+$('btnRec').addEventListener('click', () => rec.on ? stopRec() : startRec());
+
+function loop() {
+  if (!rec.on) return;
+  const t = totalSecs();
+  if (rec.an && t - rec.lastLvl >= 0.1) {
+    rec.an.getFloatTimeDomainData(rec.buf);
+    let sum = 0; for (const v of rec.buf) sum += v * v;
+    levels.push({ t, v: Math.min(1, Math.sqrt(sum / rec.buf.length) * 6) });
+    if (levels.length > 3000) levels = levels.slice(-2000);
+    rec.lastLvl = t;
+  }
+  drawTape(); updateTimer();
+  rec.raf = requestAnimationFrame(loop);
+}
+function updateTimer() { $('timer').textContent = fmt(totalSecs()); }
+
+// La cinta métrica: 1 marca por segundo, número cada minuto
+const tape = $('tape'); let tapeW = 0;
+function sizeTape() {
+  const dpr = window.devicePixelRatio || 1;
+  tapeW = tape.clientWidth; if (!tapeW) return;
+  tape.width = Math.round(tapeW * dpr); tape.height = Math.round(64 * dpr);
+  tape.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawTape();
+}
+function drawTape() {
+  if (!tapeW) return;
+  const ctx = tape.getContext('2d'), W = tapeW, top = 8, bh = 48;
+  const total = totalSecs(), span = 120, pps = W / span;
+  const start = Math.max(0, total - span * 0.82);
+  const X = t => (t - start) * pps;
+  ctx.clearRect(0, 0, W, 64);
+  ctx.fillStyle = '#343d41'; ctx.fillRect(0, top, W, bh);
+  const xe = Math.min(W, X(total));
+  ctx.fillStyle = '#F5B800'; ctx.fillRect(0, top, xe, bh);
+  ctx.fillStyle = 'rgba(34,41,44,.22)';
+  for (const l of levels) { const lx = X(l.t); if (lx < 0 || lx > xe) continue; const h = Math.max(1, l.v * (bh - 6)); ctx.fillRect(lx, top + bh - h, Math.max(1, pps * 0.1), h); }
+  ctx.lineWidth = 1;
+  for (let s = Math.floor(start); s <= start + span; s++) {
+    const tx = Math.round(X(s)) + 0.5; if (tx < 0) continue;
+    const len = s % 60 === 0 ? 24 : s % 10 === 0 ? 14 : s % 5 === 0 ? 9 : 5;
+    ctx.strokeStyle = s <= total ? '#22292C' : '#5b666b';
+    ctx.beginPath(); ctx.moveTo(tx, top); ctx.lineTo(tx, top + len); ctx.stroke();
+    if (s % 60 === 0 && s > 0) {
+      ctx.fillStyle = s <= total ? '#22292C' : '#7d878b';
+      ctx.font = '700 15px "Barlow Condensed", sans-serif';
+      ctx.fillText(String(s / 60), tx + 3, top + 38);
+    }
+  }
+  if (rec.on) { ctx.fillStyle = '#B3261E'; ctx.fillRect(xe - 1.5, 2, 3, 60); }
+}
+window.addEventListener('resize', debounce(sizeTape, 150));
+
+// Tramos de audio
+let player = null, playingId = null;
+function renderSegs() {
+  const ol = $('segs'); ol.innerHTML = '';
+  V.audios.forEach((a, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="lbl">Tramo ${i + 1}${a.text != null ? ' <span class="tx">transcrito</span>' : ''}</span><span class="dur">${fmt(a.dur)}</span>`;
+    const play = document.createElement('button'); play.type = 'button';
+    const playing = playingId === a.id;
+    play.setAttribute('aria-label', playing ? 'Parar' : 'Escuchar tramo ' + (i + 1));
+    play.innerHTML = playing ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    play.onclick = () => togglePlay(a);
+    const del = document.createElement('button'); del.type = 'button'; del.setAttribute('aria-label', 'Borrar tramo ' + (i + 1));
+    del.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+    del.onclick = () => deleteSeg(a);
+    li.append(play, del); ol.append(li);
+  });
+  if (!rec.on) $('recState').textContent = V.audios.length ? 'Pulsa para seguir grabando' : 'Listo para grabar';
+}
+async function togglePlay(a) {
+  if (player) { player.pause(); player = null; }
+  if (playingId === a.id) { playingId = null; renderSegs(); return; }
+  const b = await idb.get('b:' + a.id); if (!b) return;
+  const u = URL.createObjectURL(b);
+  player = new Audio(u); playingId = a.id;
+  player.onended = () => { URL.revokeObjectURL(u); playingId = null; player = null; renderSegs(); };
+  player.play().catch(() => { playingId = null; renderSegs(); });
+  renderSegs();
+}
+async function deleteSeg(a) {
+  if (rec.on) return;
+  if (!confirm('¿Borrar este tramo de audio?')) return;
+  if (playingId === a.id && player) { player.pause(); player = null; playingId = null; }
+  V.audios = V.audios.filter(x => x.id !== a.id);
+  V.audioSecs = Math.max(0, V.audioSecs - a.dur);
+  if (!V.audios.length) V.audioSecs = 0;
+  levels = [];
+  await idb.del('b:' + a.id); await saveNow();
+  renderSegs(); drawTape(); updateTimer(); updateGenerate();
+}
+
+// ---------- Mantener la pantalla encendida ----------
+let wl = null, busy = false;
+async function keepAwake(on) {
+  try {
+    if (on && 'wakeLock' in navigator && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); }
+    if (!on && wl && !rec.on && !busy) { await wl.release(); wl = null; }
+  } catch { }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (rec.on || busy)) keepAwake(true); });
+window.addEventListener('beforeunload', e => { if (rec.on || busy) { e.preventDefault(); e.returnValue = ''; } });
+
+// ---------- Botón generar ----------
+function updateGenerate() {
+  const hasContent = V.audios.length || V.notas.length || (V.texto || '').trim();
+  const s = settings();
+  let note = '';
+  if (!s.proxy || !s.token) note = 'Configura el proxy en Ajustes para poder generar el informe.';
+  else if (!V.obra.trim()) note = 'Escribe el nombre de la obra.';
+  else if (!hasContent) note = 'Graba el resumen, añade tus notas o escríbelas.';
+  $('capNote').textContent = note; $('capNote').hidden = !note;
+  $('btnGenerate').disabled = Boolean(note) || rec.on;
+  $('btnGenerate').textContent = V.informe ? 'Volver a generar el informe' : 'Generar informe';
+}
+
+// ---------- Llamadas al proxy ----------
+async function api(path, body, contentType) {
+  const s = settings();
+  const url = s.proxy.trim().replace(/\/+$/, '') + path;
+  let r;
+  try {
+    r = await fetch(url, { method: body == null ? 'GET' : 'POST', headers: { 'Authorization': 'Bearer ' + s.token, ...(contentType ? { 'Content-Type': contentType } : {}) }, body });
+  } catch (e) {
+    throw new Error('No hay conexión con el proxy. Comprueba la cobertura y la URL en Ajustes.');
+  }
+  let data = {};
+  try { data = await r.json(); } catch { }
+  if (!r.ok) throw new Error(data.error || ('Error ' + r.status + ' del proxy.'));
+  return data;
+}
+
+// ---------- Generar informe ----------
+let steps = [];
+function renderSteps() {
+  $('steps').innerHTML = '';
+  for (const st of steps) {
+    const li = document.createElement('li'); li.className = st.state;
+    li.innerHTML = `<div><b></b><small></small></div>`;
+    li.querySelector('b').textContent = st.label; li.querySelector('small').textContent = st.detail || '';
+    $('steps').append(li);
+  }
+}
+function setStep(i, state, detail) { steps[i].state = state; if (detail !== undefined) steps[i].detail = detail; renderSteps(); }
+
+async function generate() {
+  if (rec.on) await stopRec();
+  const hasAudio = V.audios.length > 0;
+  steps = [];
+  if (hasAudio) steps.push({ label: 'Transcribir el audio', state: 'wait', detail: V.audios.length + (V.audios.length > 1 ? ' tramos' : ' tramo') });
+  steps.push({ label: 'Leer las notas y las fotos y redactar el informe', state: 'wait', detail: 'Suele tardar entre 1 y 3 minutos' });
+  renderSteps();
+  $('progErr').hidden = true; $('progBtns').hidden = true; $('progHint').hidden = false;
+  show('progress');
+  busy = true; keepAwake(true);
+  let i = 0;
+  try {
+    if (hasAudio) {
+      setStep(0, 'run');
+      const s = settings();
+      const prompt = `Visita de obra${V.obra ? ' ' + V.obra : ''}. Propiedad, dirección facultativa, dirección de ejecución, jefe de obra, encargado, ${s.empresa}.`;
+      for (const [k, a] of V.audios.entries()) {
+        if (a.text != null) continue;
+        setStep(0, 'run', `Tramo ${k + 1} de ${V.audios.length}`);
+        const blob = await idb.get('b:' + a.id);
+        if (!blob) { a.text = ''; continue; }
+        const b64 = await readAs(blob, false);
+        const res = await api('/transcribe?prompt=' + encodeURIComponent(prompt), b64, 'text/plain');
+        a.text = res.texto || '';
+        await saveNow();
+      }
+      V.transcript = V.audios.map(a => a.text).filter(Boolean).join('\n\n');
+      await saveNow();
+      setStep(0, 'ok', V.transcript ? V.transcript.split(/\s+/).length + ' palabras' : 'No se ha reconocido voz');
+      i = 1;
+    } else if (!V.transcript) {
+      V.transcript = '';
+    }
+    await redact(i);
+  } catch (e) {
+    setStep(i, 'err');
+    $('progErr').textContent = e.message; $('progErr').hidden = false;
+    $('progBtns').hidden = false; $('progHint').hidden = true;
+  } finally {
+    busy = false; keepAwake(false);
+  }
+}
+
+async function redact(stepIndex) {
+  setStep(stepIndex, 'run');
+  const s = settings();
+  const fechaTxt = fechaLarga(V.fecha);
+  const intro = [
+    `Hoy es ${fechaLarga(todayISO())}.`,
+    '',
+    'Datos de la visita:',
+    `- Obra: ${V.obra}`,
+    `- Ubicación: ${V.dir || 'no indicada'}`,
+    `- Fecha de la visita: ${fechaTxt}`,
+    `- Visita nº: ${V.num || 'no indicado'}`,
+    `- Redacta el informe: ${s.nombre || 'el jefe de obra'}, ${s.cargo || 'jefe de obra'} de ${s.empresa} (empresa contratista)`,
+    `- Asistentes indicados en la app: ${(V.asis || '').trim() ? '\n' + V.asis.trim() : 'no indicados'}`,
+    '',
+    'Transcripción automática del resumen hablado:',
+    '<<<',
+    (V.transcript || '').trim() || '(sin audio)',
+    '>>>',
+    '',
+    'Notas escritas en la app:',
+    (V.texto || '').trim() || '(ninguna)',
+    '',
+    `A continuación van ${V.notas.length} fotos de notas manuscritas (N1, N2…) y ${V.fotos.length} fotos de la visita (F1, F2…).`,
+  ].join('\n');
+  const content = [{ type: 'text', text: intro }];
+  for (const [k, n] of V.notas.entries()) {
+    const b = await idb.get('b:' + n.id); if (!b) continue;
+    content.push({ type: 'text', text: `Nota manuscrita N${k + 1}:` });
+    content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: await readAs(b, false) } });
+  }
+  for (const [k, f] of V.fotos.entries()) {
+    const b = await idb.get('b:' + f.id); if (!b) continue;
+    const small = await resizeImage(b, 1024, 0.72);
+    content.push({ type: 'text', text: `Foto de la visita F${k + 1}:` });
+    content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: await readAs(small.blob, false) } });
+  }
+  content.push({ type: 'text', text: 'Redacta el informe completo y guárdalo con la herramienta guardar_informe.' });
+
+  const res = await api('/report', JSON.stringify(content), 'application/json');
+  V.informe = normalize(res.informe);
+  V.stage = 'review';
+  const obras = store.get('obras', {});
+  obras[V.obra.trim()] = { dir: V.dir, num: Number(V.num) || 0, asis: V.asis };
+  store.set('obras', obras); fillObras();
+  await saveNow();
+  setStep(stepIndex, 'ok');
+  renderReview(); show('review');
+}
+
+function normalize(I) {
+  I = I && typeof I === 'object' ? I : {};
+  const arr = x => Array.isArray(x) ? x : [];
+  const out = {
+    resumen: String(I.resumen || ''),
+    asistentes: arr(I.asistentes).map(a => ({ nombre: String(a.nombre || ''), rol: ROLES.some(r => r.k === a.rol) ? a.rol : 'Otros', entidad: String(a.entidad || '') })),
+    temas: arr(I.temas).map(t => ({ titulo: String(t.titulo || ''), descripcion: String(t.descripcion || '') })),
+    acuerdos: arr(I.acuerdos).map(a => ({ descripcion: String(a.descripcion || ''), tema: Number.isInteger(a.tema) ? a.tema : null })),
+    pendientes: arr(I.pendientes).map(p => ({
+      descripcion: String(p.descripcion || ''), responsable: ROLES.some(r => r.k === p.responsable) ? p.responsable : 'Otros',
+      tipo: TIPOS.includes(p.tipo) ? p.tipo : 'Tarea', plazo: String(p.plazo || ''), prioridad: PRIOS.includes(p.prioridad) ? p.prioridad : 'Media',
+      tema: Number.isInteger(p.tema) ? p.tema : null,
+    })),
+    fotos: [],
+    puntos_a_verificar: arr(I.puntos_a_verificar).map(String),
+    proxima_visita: String(I.proxima_visita || ''),
+  };
+  const byRef = new Map(arr(I.fotos).map(f => [String(f.id || '').toUpperCase(), f]));
+  out.fotos = V.fotos.map((f, k) => {
+    const m = byRef.get('F' + (k + 1)) || {};
+    return { id: f.id, pie: String(m.pie || ''), tema: Number.isInteger(m.tema) && m.tema >= 1 && m.tema <= out.temas.length ? m.tema : null };
+  });
+  return out;
+}
+
+$('btnGenerate').addEventListener('click', () => {
+  if (V.informe && !confirm('Se creará un informe nuevo y se perderán los cambios que hayas hecho en el actual. ¿Continuar?')) return;
+  generate();
+});
+$('btnRetry').addEventListener('click', generate);
+$('btnBackCapture').addEventListener('click', () => show('capture'));
+
+// ---------- Revisión ----------
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== undefined && v !== null) e.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null) e.append(k);
+  return e;
+}
+const autosize = t => { t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; };
+function ta(obj, key, ph = '', rows = 2) {
+  const t = el('textarea', { rows, placeholder: ph, 'aria-label': ph || key });
+  t.value = obj[key] || '';
+  t.addEventListener('input', () => { obj[key] = t.value; autosize(t); saveV(); });
+  requestAnimationFrame(() => autosize(t));
+  return t;
+}
+function inp(obj, key, ph = '') {
+  const i = el('input', { placeholder: ph, 'aria-label': ph || key }); i.value = obj[key] || '';
+  i.addEventListener('input', () => { obj[key] = i.value; saveV(); });
+  return i;
+}
+function sel(obj, key, options, label, onchange) {
+  const s = el('select', { 'aria-label': label });
+  for (const o of options) { const [v, t] = Array.isArray(o) ? o : [o, o]; const op = el('option', { value: v }); op.textContent = t; s.append(op); }
+  s.value = obj[key] == null ? '' : String(obj[key]);
+  s.addEventListener('change', () => { const v = s.value; obj[key] = v === '' ? null : (/^\d+$/.test(v) && key === 'tema' ? Number(v) : v); saveV(); if (onchange) onchange(); });
+  return s;
+}
+const trash = () => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+function delBtn(label, fn) { const b = el('button', { class: 'del', type: 'button', 'aria-label': label, onclick: fn }); b.innerHTML = trash(); return b; }
+function addBtn(text, fn) { return el('button', { class: 'addrow', type: 'button', onclick: fn }, text); }
+const roleColor = k => (ROLES.find(r => r.k === k) || ROLES[5]).c;
+const temaOptions = () => [['', 'Sin tema'], ...V.informe.temas.map((t, i) => [String(i + 1), `${i + 1}. ${t.titulo || 'Sin título'}`])];
+
+const secs = {};
+function section(key, title, sub) {
+  const s = el('div', { class: 'rv-sec', id: 'rv-' + key });
+  secs[key] = s; return s;
+}
+function renderReview() {
+  const I = V.informe; if (!I) return;
+  const rv = $('rv'); rv.innerHTML = '';
+  const order = ['verificar', 'resumen', 'asistentes', 'temas', 'acuerdos', 'pendientes', 'proxima', 'fotos', 'transcripcion'];
+  for (const k of order) { rv.append(section(k)); rs[k](); }
+}
+const rs = {
+  verificar() {
+    const I = V.informe, s = secs.verificar;
+    s.className = I.puntos_a_verificar.length ? 'warnbox' : ''; s.innerHTML = '';
+    if (!I.puntos_a_verificar.length) return;
+    s.append(el('h2', {}, 'Puntos a verificar'), el('p', {}, 'Dudas detectadas en el audio o en las notas. Corrige el informe y bórralas; no salen en el PDF.'));
+    I.puntos_a_verificar.forEach((p, i) => {
+      const t = el('textarea', { rows: 1, 'aria-label': 'Punto a verificar ' + (i + 1) }); t.value = p;
+      t.addEventListener('input', () => { I.puntos_a_verificar[i] = t.value; autosize(t); saveV(); });
+      requestAnimationFrame(() => autosize(t));
+      s.append(el('div', { class: 'line' }, t, delBtn('Borrar punto', () => { I.puntos_a_verificar.splice(i, 1); saveV(); rs.verificar(); })));
+    });
+  },
+  resumen() {
+    const s = secs.resumen; s.innerHTML = '';
+    s.append(el('h2', {}, 'Resumen'), ta(V.informe, 'resumen', 'Resumen de la visita', 4));
+  },
+  asistentes() {
+    const I = V.informe, s = secs.asistentes; s.innerHTML = '';
+    s.append(el('h2', {}, 'Asistentes'));
+    I.asistentes.forEach((a, i) => {
+      s.append(el('div', { class: 'item' },
+        el('div', { class: 'line' }, inp(a, 'nombre', 'Nombre'), delBtn('Borrar asistente', () => { I.asistentes.splice(i, 1); saveV(); rs.asistentes(); })),
+        el('div', { class: 'grid3' }, sel(a, 'rol', ROLES.map(r => r.k), 'Rol'), inp(a, 'entidad', 'Empresa o entidad'))));
+    });
+    s.append(addBtn('Añadir asistente', () => { I.asistentes.push({ nombre: '', rol: 'Otros', entidad: '' }); saveV(); rs.asistentes(); }));
+  },
+  temas() {
+    const I = V.informe, s = secs.temas; s.innerHTML = '';
+    s.append(el('h2', {}, 'Temas tratados'));
+    I.temas.forEach((t, i) => {
+      const mini = el('div', { class: 'mini' });
+      I.fotos.forEach((f, k) => { if (f.tema === i + 1) blobUrl(f.id).then(u => mini.append(el('img', { src: u, alt: 'Foto ' + (k + 1) }))); });
+      s.append(el('div', { class: 'item' },
+        el('div', { class: 'item-h' }, el('b', {}, `Tema ${i + 1}`), delBtn('Borrar tema ' + (i + 1), () => { if (confirm('¿Borrar este tema?')) removeTema(i); })),
+        inp(t, 'titulo', 'Título del tema'), el('div', { style: 'height:8px' }), ta(t, 'descripcion', 'Qué se trató', 4), mini));
+    });
+    s.append(addBtn('Añadir tema', () => { I.temas.push({ titulo: '', descripcion: '' }); saveV(); rs.temas(); refreshTemaSelects(); }));
+  },
+  acuerdos() {
+    const I = V.informe, s = secs.acuerdos; s.innerHTML = '';
+    s.append(el('h2', {}, 'Acuerdos'));
+    if (!I.acuerdos.length) s.append(el('p', { class: 'empty' }, 'No se registraron acuerdos.'));
+    I.acuerdos.forEach((a, i) => {
+      s.append(el('div', { class: 'item' },
+        el('div', { class: 'line' }, ta(a, 'descripcion', 'Acuerdo'), delBtn('Borrar acuerdo', () => { I.acuerdos.splice(i, 1); saveV(); rs.acuerdos(); })),
+        el('div', { class: 'grid3' }, el('div', { class: 'full' }, sel(a, 'tema', temaOptions(), 'Tema')))));
+    });
+    s.append(addBtn('Añadir acuerdo', () => { I.acuerdos.push({ descripcion: '', tema: null }); saveV(); rs.acuerdos(); }));
+  },
+  pendientes() {
+    const I = V.informe, s = secs.pendientes, emp = settings().empresa || 'Contratista'; s.innerHTML = '';
+    s.append(el('h2', {}, 'Pendientes por responsable'));
+    for (const role of ROLES) {
+      const items = I.pendientes.map((p, i) => [p, i]).filter(([p]) => p.responsable === role.k);
+      const bar = el('i', { style: 'background:' + role.c });
+      s.append(el('div', { class: 'grp' }, bar, role.t(emp), el('span', {}, items.length ? `(${items.length})` : '')));
+      if (!items.length) s.append(el('p', { class: 'empty' }, 'Nada pendiente.'));
+      for (const [p, i] of items) {
+        s.append(el('div', { class: 'item pend', style: 'border-left-color:' + role.c },
+          el('div', { class: 'line' }, ta(p, 'descripcion', 'Qué hay que hacer o decidir'), delBtn('Borrar pendiente', () => { I.pendientes.splice(i, 1); saveV(); rs.pendientes(); })),
+          el('div', { class: 'grid3' },
+            sel(p, 'responsable', ROLES.map(r => r.k), 'Responsable', () => rs.pendientes()),
+            sel(p, 'tipo', TIPOS, 'Tipo'),
+            inp(p, 'plazo', 'Plazo'),
+            sel(p, 'prioridad', PRIOS, 'Prioridad'),
+            el('div', { class: 'full' }, sel(p, 'tema', temaOptions(), 'Tema')))));
+      }
+      s.append(addBtn('Añadir pendiente', () => { I.pendientes.push({ descripcion: '', responsable: role.k, tipo: 'Tarea', plazo: '', prioridad: 'Media', tema: null }); saveV(); rs.pendientes(); }));
+    }
+  },
+  proxima() {
+    const s = secs.proxima; s.innerHTML = '';
+    s.append(el('h2', {}, 'Próxima visita'), inp(V.informe, 'proxima_visita', 'Fecha y hora, si se acordó'));
+  },
+  fotos() {
+    const I = V.informe, s = secs.fotos; s.innerHTML = '';
+    if (!V.fotos.length) return;
+    s.append(el('h2', {}, 'Fotos'));
+    I.fotos.forEach((f, k) => {
+      const img = el('img', { alt: 'Foto ' + (k + 1) }); blobUrl(f.id).then(u => { img.src = u; });
+      s.append(el('div', { class: 'item foto-item' }, img,
+        el('div', {}, el('div', { class: 'n' }, 'Foto ' + (k + 1)), ta(f, 'pie', 'Pie de foto', 2), el('div', { style: 'height:8px' }), sel(f, 'tema', temaOptions(), 'Tema', () => rs.temas()))));
+    });
+  },
+  transcripcion() {
+    const s = secs.transcripcion; s.innerHTML = ''; s.style.borderBottom = '0';
+    const d = el('details', { class: 'trans' }, el('summary', {}, 'Transcripción del audio'));
+    const t = el('textarea', { 'aria-label': 'Transcripción' }); t.value = V.transcript || '';
+    t.addEventListener('input', () => { V.transcript = t.value; saveV(); });
+    d.append(el('p', { class: 'hint', style: 'margin:4px 0 0' }, 'Si ves un error de reconocimiento importante, corrígelo aquí y redacta de nuevo.'), t,
+      el('button', { class: 'btn wide', type: 'button', onclick: async () => {
+        if (!confirm('Se redactará un informe nuevo con esta transcripción y se perderán los cambios hechos en el actual. ¿Continuar?')) return;
+        steps = [{ label: 'Leer las notas y las fotos y redactar el informe', state: 'wait', detail: 'Suele tardar entre 1 y 3 minutos' }];
+        $('progErr').hidden = true; $('progBtns').hidden = true; $('progHint').hidden = false; renderSteps(); show('progress');
+        busy = true; keepAwake(true);
+        try { await redact(0); } catch (e) { setStep(0, 'err'); $('progErr').textContent = e.message; $('progErr').hidden = false; $('progBtns').hidden = false; $('progHint').hidden = true; }
+        finally { busy = false; keepAwake(false); }
+      } }, 'Redactar de nuevo con esta transcripción'));
+    s.append(d);
+  },
+};
+function removeTema(i) {
+  const I = V.informe; I.temas.splice(i, 1);
+  const fix = r => { if (r.tema === i + 1) r.tema = null; else if (r.tema > i + 1) r.tema--; };
+  I.fotos.forEach(fix); I.acuerdos.forEach(fix); I.pendientes.forEach(fix);
+  saveV(); rs.temas(); refreshTemaSelects();
+}
+function refreshTemaSelects() { rs.acuerdos(); rs.pendientes(); rs.fotos(); }
+$('btnToCapture').addEventListener('click', () => show('capture'));
+
+// ---------- PDF ----------
+let lastPdf = null;
+function pdfName() {
+  const clean = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  return ['Visita', clean(V.obra).slice(0, 40), V.num ? 'n' + V.num : '', V.fecha].filter(Boolean).join('_') + '.pdf';
+}
+$('btnPdf').addEventListener('click', async () => {
+  const btn = $('btnPdf'); btn.disabled = true; btn.textContent = 'Creando PDF…';
+  try {
+    const s = settings();
+    const fotos = [];
+    for (const [k, f] of V.fotos.entries()) {
+      const b = await idb.get('b:' + f.id); if (!b) continue;
+      const r = await resizeImage(b, 1400, 0.8);
+      const meta = V.informe.fotos.find(x => x.id === f.id) || {};
+      fotos.push({ n: k + 1, url: await readAs(r.blob, true), w: r.w, h: r.h, pie: meta.pie || '', tema: meta.tema || null });
+    }
+    const doc = buildPdf(window.jspdf.jsPDF, { obra: V.obra, dir: V.dir, fecha: V.fecha, num: V.num, nombre: s.nombre, cargo: s.cargo, empresa: s.empresa, informe: V.informe, fotos });
+    lastPdf = new File([doc.output('blob')], pdfName(), { type: 'application/pdf' });
+    $('pdfName').textContent = lastPdf.name;
+    $('btnShare').hidden = !(navigator.canShare && navigator.canShare({ files: [lastPdf] }));
+    V.stage = 'done'; await saveNow();
+    show('done');
+  } catch (e) {
+    alert('No se ha podido crear el PDF: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Crear PDF';
+  }
+});
+$('btnShare').addEventListener('click', async () => {
+  if (!lastPdf) return;
+  try { await navigator.share({ files: [lastPdf], title: lastPdf.name }); }
+  catch (e) { if (e.name !== 'AbortError') toast('No se ha podido compartir. Usa Descargar PDF.'); }
+});
+$('btnDownload').addEventListener('click', () => {
+  if (!lastPdf) return;
+  const u = URL.createObjectURL(lastPdf);
+  const a = el('a', { href: u, download: lastPdf.name }); document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 10000);
+  toast('PDF guardado en Descargas.');
+});
+$('btnBackReview').addEventListener('click', () => { V.stage = 'review'; saveV(); show('review'); });
+
+// ---------- Visita nueva ----------
+async function resetVisit() {
+  if (rec.on) return;
+  if (!confirm('Se borrará de este móvil la visita actual: audio, fotos e informe. ¿Empezar una visita nueva?')) return;
+  for (const u of urls.values()) URL.revokeObjectURL(u); urls.clear();
+  await idb.clear();
+  V = newVisit(); levels = []; lastPdf = null;
+  await saveNow();
+  fillFields(); renderThumbs('notas'); renderThumbs('fotos'); renderSegs(); updateTimer(); drawTape();
+  $('btnRec').setAttribute('aria-label', 'Empezar a grabar');
+  show('capture');
+}
+$('btnNewVisit').addEventListener('click', resetVisit);
+$('btnNewVisit2').addEventListener('click', resetVisit);
+
+// ---------- Ajustes ----------
+function openSettings() {
+  if (rec.on) return;
+  const s = settings();
+  $('sProxy').value = s.proxy; $('sToken').value = s.token; $('sNombre').value = s.nombre; $('sCargo').value = s.cargo; $('sEmpresa').value = s.empresa;
+  $('testMsg').textContent = '';
+  $('btnCloseSettings').hidden = !(s.proxy && s.token);
+  if (current !== 'settings') beforeSettings = current === 'progress' ? 'capture' : current;
+  show('settings');
+}
+function readSettings() {
+  return { proxy: $('sProxy').value.trim(), token: $('sToken').value.trim(), nombre: $('sNombre').value.trim(), cargo: $('sCargo').value.trim(), empresa: $('sEmpresa').value.trim() || 'Voracys' };
+}
+$('btnSettings').addEventListener('click', openSettings);
+$('btnCloseSettings').addEventListener('click', () => show(beforeSettings));
+$('btnSaveSettings').addEventListener('click', () => {
+  const s = readSettings();
+  if (!/^https:\/\//.test(s.proxy)) { alert('La URL del proxy debe empezar por https://'); return; }
+  if (!s.token) { alert('Falta el token de la app.'); return; }
+  store.set('settings', s); toast('Ajustes guardados.');
+  show(beforeSettings);
+});
+$('btnTest').addEventListener('click', async () => {
+  const s = readSettings(); const prev = store.get('settings', {});
+  store.set('settings', { ...prev, ...s });
+  $('testMsg').textContent = 'Probando…';
+  try {
+    const r = await api('/health');
+    const faltan = [!r.claude && 'la clave de Claude (ANTHROPIC_API_KEY)', !r.transcripcion && 'el enlace de Workers AI (AI)'].filter(Boolean);
+    $('testMsg').textContent = faltan.length ? 'Conecta, pero falta en el worker ' + faltan.join(' y ') + '.' : 'Todo correcto. Modelo: ' + r.modelo + '.';
+  } catch (e) { $('testMsg').textContent = e.message; }
+  finally { store.set('settings', prev); }
+});
+
+// ---------- Arranque ----------
+(async function init() {
+  try { const saved = await idb.get('visit'); if (saved && saved.id) V = { ...newVisit(), ...saved }; } catch (e) { console.error(e); }
+  fillFields(); fillObras();
+  await renderThumbs('notas'); await renderThumbs('fotos');
+  renderSegs(); updateTimer();
+  const s = settings();
+  if (!s.proxy || !s.token) { beforeSettings = 'capture'; openSettings(); }
+  else if (V.informe && (V.stage === 'review' || V.stage === 'done')) { renderReview(); show('review'); }
+  else show('capture');
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
+})();
+</script>
+</body>
+</html>

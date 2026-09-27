@@ -1,0 +1,17 @@
+{
+  "name": "Visitas de obra",
+  "short_name": "Visitas obra",
+  "description": "Informe de la visita de obra a partir de un audio, tus notas y las fotos.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E4E6E1",
+  "theme_color": "#22292C",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
