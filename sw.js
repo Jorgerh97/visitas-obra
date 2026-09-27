@@ -1,9 +1,11 @@
 // Guarda la app en el móvil para que se abra y grabe aunque no haya cobertura en obra.
-const CACHE = 'visitas-obra-v4';
+const CACHE = 'visitas-obra-v5';
 const ASSETS = [
   './', 'index.html', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png',
   'vendor/jspdf.umd.min.js', 'vendor/jspdf.plugin.autotable.min.js',
+  'vendor/pdfjs/pdf.min.mjs', 'vendor/pdfjs/pdf.worker.min.mjs',
+  'vendor/pdfjs/standard_fonts/LiberationSans-Regular.ttf', 'vendor/pdfjs/standard_fonts/LiberationSans-Bold.ttf',
   'fonts/barlow-latin-400-normal.woff2', 'fonts/barlow-latin-500-normal.woff2', 'fonts/barlow-latin-600-normal.woff2',
   'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2',
 ];

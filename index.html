@@ -231,6 +231,28 @@ details.trans textarea{min-height:200px;margin:8px 0}
 
 .handoff{margin:0 0 6px}
 
+/* Visor de PDF */
+.pv{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:#5B6573}
+.pv-bar{display:flex;align-items:center;gap:4px;background:var(--bar);border-bottom:3px solid var(--brand);padding:calc(8px + env(safe-area-inset-top,0px)) 8px 8px}
+.pv-t{flex:1;min-width:0;padding:0 6px}
+.pv-t b{display:block;font:700 19px/1.15 var(--cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-t span{display:block;font-size:13px;color:var(--muted)}
+.pv-z{font:700 24px/1 var(--cond)}
+.pv-pages{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y}
+.pv-inner{padding:14px 12px 24px;transform-origin:0 0;width:max-content;min-width:100%}
+.pv-page{position:relative;margin:0 auto 14px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.pv-page canvas{display:block;width:100%;height:100%}
+.pv-page .pv-n{position:absolute;right:6px;bottom:6px;background:rgba(22,50,79,.75);color:#fff;font-size:12px;padding:1px 6px;border-radius:4px}
+.pv-msg{color:#fff;text-align:center;padding:40px 20px;font-size:16px}
+.pv-actions{display:flex;gap:10px;background:var(--bar);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px))}
+.pv-actions .btn{flex:1;min-height:48px;font-size:16px;padding:0 10px}
+.pv-note{flex-basis:100%;margin:0;color:var(--warn-ink);font-size:14px;font-weight:600;text-align:center}
+.pv-actions.wrap{flex-wrap:wrap}
+@media (min-width:960px){.pv-actions{justify-content:flex-end}.pv-actions .btn{flex:0 0 auto;min-width:200px}.pv-note{flex-basis:auto;flex:1;text-align:left;align-self:center}}
+.vis .row-btns{flex-wrap:wrap}
+.bar .row-btns{width:100%}
+@media (min-width:960px){.bar .row-btns{width:auto;min-width:520px}}
+
 /* Ordenador: pantalla grande */
 @media (min-width:960px){
   main{max-width:1200px;padding:24px 32px 32px}
@@ -423,6 +445,7 @@ details.trans textarea{min-height:200px;margin:8px 0}
       <p class="sync" id="syncMsg" role="status"></p>
       <button class="btn wide" id="btnSyncRetry" hidden style="margin-bottom:10px">Reintentar el guardado</button>
       <button class="btn primary wide" id="btnShare">Compartir PDF</button>
+      <button class="btn wide" id="btnView">Ver PDF</button>
       <button class="btn wide" id="btnDownload">Descargar PDF</button>
       <button class="btn wide" id="btnBackReview">Volver al informe</button>
       <button class="btn wide" id="btnComplement2">Grabar audio complementario</button>
@@ -449,11 +472,24 @@ details.trans textarea{min-height:200px;margin:8px 0}
   </section>
 </main>
 
+<div class="pv" id="pv" hidden role="dialog" aria-modal="true" aria-labelledby="pvTitle">
+  <div class="pv-bar">
+    <button class="icon-btn" id="pvClose" aria-label="Cerrar el PDF">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="pv-t"><b id="pvTitle"></b><span id="pvInfo"></span></div>
+    <button class="icon-btn pv-z" id="pvZoomOut" aria-label="Reducir">−</button>
+    <button class="icon-btn pv-z" id="pvZoomIn" aria-label="Ampliar">+</button>
+  </div>
+  <div class="pv-pages" id="pvPages"><div class="pv-inner" id="pvInner"></div></div>
+  <div class="pv-actions" id="pvActions"></div>
+</div>
+
 <footer class="bar">
   <div id="fObra" hidden><button class="btn primary wide" id="btnStartVisit">Nueva visita</button></div>
   <div id="fObraForm" hidden><button class="btn primary wide" id="btnSaveObra">Guardar obra</button></div>
   <div id="fCapture"><p class="note" id="capNote" hidden></p><button class="btn primary wide" id="btnGenerate">Generar informe</button></div>
-  <div id="fReview" hidden><button class="btn primary wide" id="btnPdf">Crear PDF</button></div>
+  <div id="fReview" hidden><div class="row-btns"><button class="btn" id="btnPreview">Vista previa</button><button class="btn primary" id="btnPdf">Crear PDF</button></div></div>
   <div id="fSettings" hidden><button class="btn primary wide" id="btnSaveSettings">Guardar ajustes</button></div>
 </footer>
 
@@ -495,6 +531,11 @@ function fechaCorta(iso) {
 
 function buildPdf(jsPDF, d) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+  doc.setProperties({
+    title: pdfText([d.obra, d.num ? 'Visita ' + d.num : '', fechaCorta(d.fecha)].filter(Boolean).join(' - ')),
+    subject: 'Informe de visita de obra', author: pdfText([d.nombre, d.empresa].filter(Boolean).join(' - ')), creator: 'Visitas de obra',
+  });
+  try { doc.viewerPreferences({ DisplayDocTitle: true }); } catch (e) { /* opcional */ }
   const W = 210, H = 297, M = 16, CW = W - 2 * M, BOTTOM = H - 20;
   // Paleta Voracys
   const C = { tinta: [22, 50, 79], gris: [82, 98, 122], linea: [214, 226, 240], plano: [31, 95, 174], marca: [96, 164, 244], naranja: [255, 123, 15], fondo: [244, 248, 253], tinte: [234, 243, 254], blanco: [255, 255, 255], rojo: [198, 40, 40] };
@@ -1498,9 +1539,8 @@ function pdfName() {
   const clean = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
   return ['Visita', clean(V.obra).slice(0, 40), V.num ? 'n' + V.num : '', V.fecha].filter(Boolean).join('_') + '.pdf';
 }
-$('btnPdf').addEventListener('click', async () => {
-  const btn = $('btnPdf'); btn.disabled = true; btn.textContent = 'Creando PDF…';
-  try {
+// Genera el PDF con el informe tal como está ahora (se usa para crearlo y para la vista previa)
+async function buildPdfFile() {
     const s = settings();
     const fotos = [];
     for (const [k, f] of V.fotos.entries()) {
@@ -1510,7 +1550,12 @@ $('btnPdf').addEventListener('click', async () => {
       fotos.push({ n: k + 1, url: await readAs(r.blob, true), w: r.w, h: r.h, pie: meta.pie || '', tema: meta.tema || null });
     }
     const doc = buildPdf(window.jspdf.jsPDF, { obra: V.obra, dir: V.dir, fecha: V.fecha, num: V.num, nombre: s.nombre, cargo: s.cargo, empresa: s.empresa, informe: V.informe, fotos });
-    lastPdf = new File([doc.output('blob')], pdfName(), { type: 'application/pdf' });
+    return new File([doc.output('blob')], pdfName(), { type: 'application/pdf' });
+}
+$('btnPdf').addEventListener('click', async () => {
+  const btn = $('btnPdf'); btn.disabled = true; btn.textContent = 'Creando PDF…';
+  try {
+    lastPdf = await buildPdfFile();
     await idb.put('pdf', lastPdf);
     V.stage = 'done'; V.pdfPendiente = true; V.guardada = false; await saveNow();
     showDone();
@@ -1520,6 +1565,16 @@ $('btnPdf').addEventListener('click', async () => {
   } finally {
     btn.disabled = false; btn.textContent = 'Crear PDF';
   }
+});
+$('btnPreview').addEventListener('click', async () => {
+  const btn = $('btnPreview'); btn.disabled = true; btn.textContent = 'Preparando…';
+  try { openViewer(await buildPdfFile(), { title: 'Vista previa del informe', preview: true }); }
+  catch (e) { alert('No se ha podido preparar la vista previa: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Vista previa'; }
+});
+$('btnView').addEventListener('click', async () => {
+  if (!lastPdf) lastPdf = await idb.get('pdf');
+  if (lastPdf) openViewer(lastPdf, { title: `${V.obra}${V.num ? ', visita ' + V.num : ''}` });
 });
 $('btnShare').addEventListener('click', async () => {
   if (!lastPdf) return;
@@ -1614,7 +1669,7 @@ async function loadObras() {
     $('homeStatus').textContent = e.offline ? 'Sin conexión. Se muestra el último listado guardado en el móvil.' : e.message;
     $('homeStatus').hidden = false;
   }
-  if (current === 'home') renderHome();
+  if (current === 'home') { renderHome(); if (wideMQ.matches && OBRAS.length) show('home'); }
   if (current === 'obra' && OB) { const o = OBRAS.find(x => x.id === OB.id); if (o) { OB = o; renderObraHead(); } }
 }
 
@@ -1705,21 +1760,45 @@ async function loadVisitas() {
       v.resumen ? el('p', { class: 'vis-r' }, v.resumen) : null,
       chips,
       v.pdf ? el('div', { class: 'row-btns' },
-        el('button', { class: 'btn', type: 'button', onclick: e => historicPdf(v, 'download', e.currentTarget) }, 'Descargar PDF'),
-        el('button', { class: 'btn', type: 'button', onclick: e => historicPdf(v, 'share', e.currentTarget) }, 'Compartir'))
+        el('button', { class: 'btn', type: 'button', onclick: e => historicPdf(v, 'view', e.currentTarget) }, 'Ver PDF'),
+        IS_DESKTOP
+          ? el('button', { class: 'btn', type: 'button', onclick: e => historicPdf(v, 'tab', e.currentTarget) }, 'Pestaña nueva')
+          : el('button', { class: 'btn', type: 'button', onclick: e => historicPdf(v, 'share', e.currentTarget) }, 'Compartir'),
+        el('button', { class: 'btn', type: 'button', onclick: e => historicPdf(v, 'download', e.currentTarget) }, 'Descargar'))
         : el('p', { class: 'empty' }, 'Sin PDF guardado.')));
   }
 }
+// PDF del historial: se recogen con el token y se guardan en memoria durante la sesión
+const pdfCache = new Map();
+async function fetchHistoricPdf(v) {
+  const key = v.id + ':' + (v.actualizada || '');
+  if (pdfCache.has(key)) return pdfCache.get(key);
+  const { blob, name } = await api(`/visitas/${v.id}/pdf`, null, null, 'GET', 'blob');
+  const file = new File([blob], name, { type: 'application/pdf' });
+  pdfCache.set(key, file);
+  return file;
+}
 async function historicPdf(v, mode, btn) {
+  // La pestaña se abre ya, dentro del clic, para que el navegador no la bloquee
+  const tab = mode === 'tab' ? openBlankTab() : null;
+  if (mode === 'tab' && !tab) return;
   const label = btn.textContent; btn.disabled = true; btn.textContent = 'Cargando…';
   try {
-    const { blob, name } = await api(`/visitas/${v.id}/pdf`, null, null, 'GET', 'blob');
-    const file = new File([blob], name, { type: 'application/pdf' });
-    if (mode === 'share' && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: name }); } catch (e) { if (e.name !== 'AbortError') throw e; }
-    } else downloadFile(file);
-  } catch (e) { alert('No se ha podido obtener el PDF: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = label; }
+    const file = await fetchHistoricPdf(v);
+    const title = `${OB ? OB.nombre : ''}, visita ${v.num || ''}`;
+    if (mode === 'view') openViewer(file, { title });
+    else if (mode === 'tab') openInTab(file, tab);
+    else if (mode === 'share') await shareFile(file);
+    else downloadFile(file);
+  } catch (e) {
+    if (tab) tab.close();
+    alert('No se ha podido obtener el PDF: ' + e.message);
+  } finally { btn.disabled = false; btn.textContent = label; }
+}
+async function shareFile(file) {
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: file.name }); } catch (e) { if (e.name !== 'AbortError') throw e; }
+  } else downloadFile(file);
 }
 function downloadFile(file) {
   const u = URL.createObjectURL(file);
@@ -2065,6 +2144,191 @@ async function dropDraft(d) {
     renderDrafts(); if (current === 'obra') loadVisitas();
     toast('Visita descartada.');
   } catch (e) { alert(e.message); }
+}
+
+// ---------- Visor de PDF (PDF.js) ----------
+const IS_DESKTOP = !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+let pdfjsLib = null;
+async function loadPdfJs() {
+  if (pdfjsLib) return pdfjsLib;
+  pdfjsLib = await import(new URL('vendor/pdfjs/pdf.min.mjs', location.href).href);
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('vendor/pdfjs/pdf.worker.min.mjs', location.href).href;
+  return pdfjsLib;
+}
+const PV = { doc: null, loading: null, file: null, opts: {}, zoom: 1, pages: [], raf: 0, pinch: null, fromHistory: false };
+const ZMIN = 1, ZMAX = 4;
+
+function pvActions() {
+  const box = $('pvActions'); box.innerHTML = ''; box.classList.toggle('wrap', Boolean(PV.opts.preview));
+  const b = (text, cls, fn) => box.append(el('button', { class: 'btn' + (cls ? ' ' + cls : ''), type: 'button', onclick: fn }, text));
+  if (PV.opts.preview) {
+    box.append(el('p', { class: 'pv-note' }, 'Vista previa: todavía no está guardado en el historial.'));
+    if (IS_DESKTOP) b('Abrir en pestaña nueva', '', () => openInTab(PV.file));
+    b('Crear PDF', 'primary', () => { closeViewer(); $('btnPdf').click(); });
+    return;
+  }
+  const canShare = navigator.canShare && navigator.canShare({ files: [PV.file] });
+  if (IS_DESKTOP) b('Abrir en pestaña nueva', '', () => openInTab(PV.file));
+  if (canShare) b('Compartir', '', () => shareFile(PV.file).catch(e => alert(e.message)));
+  b('Descargar', '', () => downloadFile(PV.file));
+}
+
+async function openViewer(file, opts = {}) {
+  if (!$('pv').hidden) closeViewer(true);
+  Object.assign(PV, { file, opts, zoom: 1, pages: [], doc: null });
+  $('pvTitle').textContent = opts.title || file.name;
+  $('pvInfo').textContent = 'Cargando…';
+  $('pvInner').innerHTML = '';
+  pvActions();
+  $('pv').hidden = false;
+  document.body.style.overflow = 'hidden';
+  // El botón «atrás» del móvil cierra el visor en lugar de salir de la app
+  try { history.pushState({ pv: true }, ''); PV.fromHistory = true; } catch { PV.fromHistory = false; }
+  $('pvClose').focus();
+  try {
+    const lib = await loadPdfJs();
+    const data = new Uint8Array(await file.arrayBuffer());
+    const loading = lib.getDocument({ data, standardFontDataUrl: new URL('vendor/pdfjs/standard_fonts/', location.href).href });
+    PV.loading = loading;
+    const doc = await loading.promise;
+    if (PV.file !== file || PV.loading !== loading) { loading.destroy(); return; }
+    PV.doc = doc;
+    for (let i = 1; i <= doc.numPages; i++) {
+      const page = await doc.getPage(i);
+      const vp = page.getViewport({ scale: 1 });
+      const canvas = el('canvas', { 'aria-label': `Página ${i}` });
+      const box = el('div', { class: 'pv-page' }, canvas, el('span', { class: 'pv-n' }, `${i} / ${doc.numPages}`));
+      $('pvInner').append(box);
+      PV.pages.push({ page, w: vp.width, h: vp.height, box, canvas, scale: 0, task: null });
+    }
+    pvLayout();
+    pvInfo();
+  } catch (e) {
+    $('pvInner').innerHTML = '';
+    $('pvInner').append(el('p', { class: 'pv-msg' }, 'No se ha podido mostrar el PDF. ' + (IS_DESKTOP ? 'Prueba con «Abrir en pestaña nueva».' : 'Prueba a descargarlo.')));
+    $('pvInfo').textContent = '';
+  }
+}
+function closeViewer(silent) {
+  $('pv').hidden = true;
+  document.body.style.overflow = '';
+  for (const p of PV.pages) if (p.task) p.task.cancel();
+  if (PV.loading) { try { PV.loading.destroy(); } catch { } }
+  PV.doc = null; PV.loading = null; PV.pages = []; $('pvInner').innerHTML = '';
+  if (!silent && PV.fromHistory && history.state && history.state.pv) { PV.fromHistory = false; history.back(); }
+}
+window.addEventListener('popstate', () => { if (!$('pv').hidden) { PV.fromHistory = false; closeViewer(true); } });
+$('pvClose').addEventListener('click', () => closeViewer());
+document.addEventListener('keydown', e => {
+  if ($('pv').hidden) return;
+  if (e.key === 'Escape') closeViewer();
+  if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); pvSetZoom(PV.zoom * 1.4); }
+  if ((e.ctrlKey || e.metaKey) && e.key === '-') { e.preventDefault(); pvSetZoom(PV.zoom / 1.4); }
+});
+
+// Tamaño de las páginas: ajustadas al ancho de la pantalla (hasta 900 px) multiplicado por el zoom
+function pvBase(p) { const W = Math.min($('pvPages').clientWidth - 24, 900); return Math.max(0.2, W / p.w); }
+function pvLayout() {
+  for (const p of PV.pages) {
+    const s = pvBase(p) * PV.zoom;
+    p.box.style.width = Math.round(p.w * s) + 'px';
+    p.box.style.height = Math.round(p.h * s) + 'px';
+  }
+  pvRenderVisible();
+}
+function pvRenderVisible() {
+  const c = $('pvPages').getBoundingClientRect();
+  for (const p of PV.pages) {
+    const r = p.box.getBoundingClientRect();
+    if (r.bottom < c.top - 800 || r.top > c.bottom + 800) continue;
+    pvRender(p);
+  }
+}
+function pvRender(p) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  let s = pvBase(p) * PV.zoom * dpr;
+  const maxPx = 14e6;                                      // límite de memoria por página
+  if (p.w * s * p.h * s > maxPx) s = Math.sqrt(maxPx / (p.w * p.h));
+  if (Math.abs(p.scale - s) < 0.01) return;
+  if (p.task) p.task.cancel();
+  const vp = p.page.getViewport({ scale: s });
+  const off = document.createElement('canvas');
+  off.width = Math.floor(vp.width); off.height = Math.floor(vp.height);
+  p.scale = s;
+  p.task = p.page.render({ canvasContext: off.getContext('2d'), viewport: vp, canvas: off });
+  p.task.promise.then(() => {
+    p.canvas.width = off.width; p.canvas.height = off.height;
+    p.canvas.getContext('2d').drawImage(off, 0, 0);
+    p.task = null;
+  }).catch(() => { p.task = null; if (p.scale === s) p.scale = 0; });
+}
+function pvInfo() {
+  const n = PV.pages.length; if (!n) return;
+  const c = $('pvPages').getBoundingClientRect(), mid = c.top + c.height / 2;
+  let cur = 1;
+  PV.pages.forEach((p, i) => { const r = p.box.getBoundingClientRect(); if (r.top <= mid) cur = i + 1; });
+  $('pvInfo').textContent = `Página ${cur} de ${n}` + (PV.zoom > 1.01 ? `, ${Math.round(PV.zoom * 100)} %` : '');
+}
+$('pvPages').addEventListener('scroll', () => {
+  cancelAnimationFrame(PV.raf);
+  PV.raf = requestAnimationFrame(() => { pvRenderVisible(); pvInfo(); });
+}, { passive: true });
+window.addEventListener('resize', debounce(() => { if (!$('pv').hidden) { for (const p of PV.pages) p.scale = 0; pvLayout(); } }, 200));
+
+function pvSetZoom(z, cx, cy) {
+  const box = $('pvPages');
+  z = Math.min(ZMAX, Math.max(ZMIN, z));
+  if (Math.abs(z - PV.zoom) < 0.01) return;
+  // Se mantiene fijo el punto del documento que está bajo el dedo (o el centro de la pantalla)
+  const r = box.getBoundingClientRect();
+  const px = cx == null ? box.clientWidth / 2 : cx - r.left, py = cy == null ? box.clientHeight / 2 : cy - r.top;
+  const k = z / PV.zoom;
+  const nx = (box.scrollLeft + px) * k - px, ny = (box.scrollTop + py) * k - py;
+  PV.zoom = z;
+  pvLayout();
+  box.scrollLeft = Math.max(0, nx); box.scrollTop = Math.max(0, ny);
+  pvRenderVisible(); pvInfo();
+}
+$('pvZoomIn').addEventListener('click', () => pvSetZoom(PV.zoom * 1.4));
+$('pvZoomOut').addEventListener('click', () => pvSetZoom(PV.zoom / 1.4));
+$('pvPages').addEventListener('dblclick', e => pvSetZoom(PV.zoom > 1.2 ? 1 : 2, e.clientX, e.clientY));
+
+// Pellizcar para ampliar: durante el gesto se escala la imagen; al soltar se vuelve a dibujar nítida
+const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+$('pvPages').addEventListener('touchstart', e => {
+  if (e.touches.length !== 2) return;
+  const box = $('pvPages'), r = box.getBoundingClientRect();
+  const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2, cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+  PV.pinch = { d0: dist(e.touches), cx, cy, ox: box.scrollLeft + cx - r.left, oy: box.scrollTop + cy - r.top, f: 1 };
+  $('pvInner').style.transformOrigin = `${PV.pinch.ox}px ${PV.pinch.oy}px`;
+}, { passive: true });
+$('pvPages').addEventListener('touchmove', e => {
+  if (!PV.pinch || e.touches.length !== 2) return;
+  e.preventDefault();
+  const f = dist(e.touches) / PV.pinch.d0;
+  PV.pinch.f = Math.min(ZMAX / PV.zoom, Math.max(ZMIN / PV.zoom, f));
+  $('pvInner').style.transform = `scale(${PV.pinch.f})`;
+}, { passive: false });
+$('pvPages').addEventListener('touchend', e => {
+  if (!PV.pinch || e.touches.length > 1) return;
+  const { f, cx, cy } = PV.pinch; PV.pinch = null;
+  $('pvInner').style.transform = '';
+  pvSetZoom(PV.zoom * f, cx, cy);
+});
+
+// Pestaña nueva con el visor del navegador, sin descargar el archivo
+function openBlankTab() {
+  const w = window.open('', '_blank');
+  if (!w) { toast('El navegador ha bloqueado la pestaña nueva. Permite las ventanas emergentes para esta app.', 4500); return null; }
+  try { w.document.title = 'Cargando PDF…'; w.document.body.innerHTML = '<p style="font:16px system-ui,sans-serif;color:#52627A;padding:24px">Cargando el PDF…</p>'; } catch { }
+  return w;
+}
+function openInTab(file, tab) {
+  const w = tab || openBlankTab();
+  if (!w) return;
+  const u = URL.createObjectURL(file);
+  w.location.href = u;
+  setTimeout(() => URL.revokeObjectURL(u), 30 * 60 * 1000);
 }
 
 $('btnBack').addEventListener('click', goBack);
