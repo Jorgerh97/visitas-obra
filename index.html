@@ -35,7 +35,7 @@
   padding-top:env(safe-area-inset-top,0px);
 }
 @media (prefers-color-scheme:dark){
-  :root{
+  :root:not([data-theme="light"]){
     --primary:#2A68BA; --go:#8CBDF8;
     --tint:#1A2F4D; --focus-ring:#26466F;
     --bg:#0F1826; --surface:#172336; --field:#0F1826; --field-in:#0F1826; --bar:#172336;
@@ -43,6 +43,16 @@
     --err:#FF7A7A; --err-bg:#3A1616; --warn-bg:#3A2610; --warn-ink:#FFC48C; --ok:#2A68BA;
   }
 }
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{
+    color-scheme:dark;
+    --primary:#2A68BA; --go:#8CBDF8;
+    --tint:#1A2F4D; --focus-ring:#26466F;
+    --bg:#0F1826; --surface:#172336; --field:#0F1826; --field-in:#0F1826; --bar:#172336;
+    --ink:#E6EDF7; --muted:#9AA9BF; --line:#2A3A52; --line2:#44587A;
+    --err:#FF7A7A; --err-bg:#3A1616; --warn-bg:#3A2610; --warn-ink:#FFC48C; --ok:#2A68BA;
+  }
+
 *,*::before,*::after{box-sizing:inherit}
 html{margin:0;height:100%}
 body{margin:0;min-height:100%}
@@ -183,19 +193,113 @@ details.trans textarea{min-height:200px;margin:8px 0}
 
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#16324F;color:#fff;padding:10px 16px;border-radius:8px;font-size:15px;z-index:20;max-width:90vw;text-align:center}
 
+/* Inicio y obras */
+.home-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.home-h h2{margin:0}
+.home-h .btn{min-height:44px;font-size:16px;padding:0 16px}
+.obra-card{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer;color:var(--ink)}
+.obra-card:active{background:var(--tint)}
+.obra-card b{display:block;font:700 21px/1.2 var(--cond)}
+.obra-card span{display:block;color:var(--muted);font-size:15px}
+.obra-card small{display:block;color:var(--go);font-size:14px;font-weight:600;margin-top:4px}
+.home-foot{margin-top:26px;padding-top:16px;border-top:1px solid var(--line)}
+.home-foot .hint{margin:0 0 8px}
+.agents{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 0 6px;font-size:15px}
+.agents dt{color:var(--muted)}
+.agents dd{margin:0;font-weight:500}
+.obra-line{margin:0 0 12px}
+.obra-line b{font:700 20px var(--cond)}
+.vis{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.vis.cur{border-color:var(--rec);border-width:2px}
+.vis-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.vis-h b{font:700 21px var(--cond)}
+.vis-h span{color:var(--muted);font-size:14px}
+.vis-r{margin:6px 0 8px;font-size:15px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--tint);border-radius:20px;padding:3px 10px 3px 8px;font-size:13px;font-weight:600}
+.chip i{width:10px;height:10px;border-radius:50%}
+.vis .row-btns .btn{min-height:44px;font-size:15px;padding:0 10px}
+.sync{margin:0 0 18px;font-size:15px;color:var(--muted)}
+.sync.ok{color:var(--go);font-weight:600}
+.sync.bad{color:var(--err);font-weight:600}
+.del-box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.del-box p{margin:0 0 10px}
+.code{font:700 40px/1 var(--cond);letter-spacing:8px;text-align:center;background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:14px 0;margin:6px 0 12px;user-select:none}
+.btn.danger{background:var(--err);border-color:var(--err);color:#fff}
+.btn.danger:disabled{background:var(--line2);border-color:var(--line2)}
+.skel{color:var(--muted);font-size:15px;padding:8px 0}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <header class="top">
+  <button class="icon-btn" id="btnBack" aria-label="Volver" hidden>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
   <svg class="logo" viewBox="0 0 30 24" width="30" height="24" aria-hidden="true"><path d="M8 0h5L5 24H0z M16 0h5l-8 24H8z M24 0h5l-8 24h-5z" fill="#60A4F4"/></svg>
-  <div class="top-txt"><h1>Visita de obra</h1><p id="topSub">Nueva visita</p></div>
+  <div class="top-txt"><h1 id="topTitle">Visitas de obra</h1><p id="topSub">Obras</p></div>
   <button class="icon-btn" id="btnSettings" aria-label="Ajustes">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
   </button>
 </header>
 
 <main>
+  <!-- Inicio: obras -->
+  <section class="view" id="vHome">
+    <div class="compl" id="homeCurrent" hidden>
+      <h2>Visita en curso</h2>
+      <p id="homeCurrentTxt"></p>
+      <button class="btn primary wide" id="btnContinue">Continuar la visita</button>
+    </div>
+    <div class="home-h"><h2 class="big">Obras</h2><button class="btn" id="btnNewObra">Nueva obra</button></div>
+    <p class="hint" id="homeStatus" hidden></p>
+    <div class="compl" id="importBox" hidden>
+      <p id="importTxt"></p>
+      <button class="btn wide" id="btnImport">Importar al listado</button>
+    </div>
+    <div id="obraList"></div>
+    <div class="home-foot">
+      <p class="hint">Descargar todos los datos para abrirlos en Excel</p>
+      <div class="row-btns"><button class="btn" id="btnExpVisitas">Visitas</button><button class="btn" id="btnExpPend">Pendientes</button></div>
+    </div>
+  </section>
+
+  <!-- Ficha de obra con su historial -->
+  <section class="view" id="vObra">
+    <h2 class="big" id="obNombre" style="margin-bottom:4px"></h2>
+    <p class="hint" id="obDir" style="margin:0 0 12px"></p>
+    <dl class="agents" id="obAgents"></dl>
+    <button class="link" id="btnEditObra" style="padding-left:0">Editar los datos de la obra</button>
+    <div class="blk" style="margin-top:8px">
+      <h2>Visitas</h2>
+      <div id="visList"></div>
+    </div>
+    <div class="blk end"><button class="link danger" id="btnDelObra">Eliminar esta obra</button></div>
+  </section>
+
+  <!-- Alta y edición de obra -->
+  <section class="view" id="vObraForm">
+    <h2 class="big" id="ofTitle">Nueva obra</h2>
+    <label class="fld"><span>Nombre de la obra</span><input id="ofNombre" autocomplete="off"></label>
+    <label class="fld"><span>Ubicación</span><input id="ofDir" autocomplete="off" placeholder="Dirección o municipio"></label>
+    <label class="fld"><span>Propiedad</span><input id="ofProp" autocomplete="off" placeholder="Nombre y empresa"></label>
+    <label class="fld"><span>Dirección Facultativa</span><input id="ofDf" autocomplete="off" placeholder="Nombre y empresa"></label>
+    <label class="fld"><span>Dirección de Ejecución</span><input id="ofDeo" autocomplete="off" placeholder="Nombre y empresa"></label>
+    <label class="fld"><span>Encargado</span><input id="ofEnc" autocomplete="off"></label>
+    <label class="fld"><span>Otros asistentes habituales <em>(opcional)</em></span><textarea id="ofAsis" rows="3" placeholder="Uno por línea. Por ejemplo: Laura Vidal, ingeniería de instalaciones"></textarea></label>
+    <div class="err" id="ofErr" hidden></div>
+  </section>
+
+  <!-- Borrado de obra en tres pasos -->
+  <section class="view" id="vDelete">
+    <h2 class="big">Eliminar obra</h2>
+    <ol class="steps" id="delSteps"></ol>
+    <div id="delBody"></div>
+    <div class="err" id="delErr" hidden></div>
+    <p><button class="link" id="btnDelCancel" style="padding-left:0">Cancelar y volver a la obra</button></p>
+  </section>
+
   <!-- Captura -->
   <section class="view" id="vCapture">
     <div class="compl" id="complBox" hidden>
@@ -205,9 +309,7 @@ details.trans textarea{min-height:200px;margin:8px 0}
     </div>
     <div class="blk">
       <h2>Datos de la visita</h2>
-      <label class="fld"><span>Obra</span><input id="fObra" list="obrasList" autocomplete="off" placeholder="Nombre de la obra"></label>
-      <datalist id="obrasList"></datalist>
-      <label class="fld"><span>Ubicación</span><input id="fDir" autocomplete="off" placeholder="Dirección o municipio"></label>
+      <p class="obra-line"><b id="cObra"></b><br><span class="hint" id="cDir"></span></p>
       <div class="row2">
         <label class="fld"><span>Fecha</span><input id="fFecha" type="date"></label>
         <label class="fld"><span>Visita nº</span><input id="fNum" type="number" inputmode="numeric" min="1"></label>
@@ -247,7 +349,7 @@ details.trans textarea{min-height:200px;margin:8px 0}
 
     <div class="blk end">
       <p id="redoWrap" hidden style="margin:0"><button class="link" id="btnRedo">Rehacer el informe desde cero con todo el material</button></p>
-      <button class="link danger" id="btnNewVisit">Empezar una visita nueva</button>
+      <button class="link danger" id="btnNewVisit">Descartar esta visita</button>
     </div>
   </section>
 
@@ -281,11 +383,13 @@ details.trans textarea{min-height:200px;margin:8px 0}
       <div class="done-mark" aria-hidden="true">✓</div>
       <h2 class="big">Informe en PDF listo</h2>
       <p class="hint" id="pdfName"></p>
+      <p class="sync" id="syncMsg" role="status"></p>
+      <button class="btn wide" id="btnSyncRetry" hidden style="margin-bottom:10px">Reintentar el guardado</button>
       <button class="btn primary wide" id="btnShare">Compartir PDF</button>
       <button class="btn wide" id="btnDownload">Descargar PDF</button>
       <button class="btn wide" id="btnBackReview">Volver al informe</button>
       <button class="btn wide" id="btnComplement2">Grabar audio complementario</button>
-      <p><button class="link danger" id="btnNewVisit2">Empezar una visita nueva</button></p>
+      <button class="btn wide" id="btnFinish">Terminar la visita</button>
     </div>
   </section>
 
@@ -301,12 +405,16 @@ details.trans textarea{min-height:200px;margin:8px 0}
     </div>
     <button class="btn wide" id="btnTest">Probar conexión</button>
     <p class="hint" id="testMsg" style="margin-top:10px"></p>
+    <button class="btn wide" id="btnBackup">Hacer una copia de seguridad ahora</button>
+    <p class="hint" id="backupMsg" style="margin-top:10px"></p>
     <p class="hint">Los ajustes se guardan solo en este móvil.</p>
     <p><button class="link" id="btnCloseSettings" style="padding-left:0">Cerrar sin guardar</button></p>
   </section>
 </main>
 
 <footer class="bar">
+  <div id="fObra" hidden><button class="btn primary wide" id="btnStartVisit">Nueva visita</button></div>
+  <div id="fObraForm" hidden><button class="btn primary wide" id="btnSaveObra">Guardar obra</button></div>
   <div id="fCapture"><p class="note" id="capNote" hidden></p><button class="btn primary wide" id="btnGenerate">Generar informe</button></div>
   <div id="fReview" hidden><button class="btn primary wide" id="btnPdf">Crear PDF</button></div>
   <div id="fSettings" hidden><button class="btn primary wide" id="btnSaveSettings">Guardar ajustes</button></div>
@@ -603,46 +711,58 @@ function toast(msg, ms = 2600) {
 }
 
 // ---------- Visita actual ----------
-const newVisit = () => ({ id: uid(), obra: '', dir: '', fecha: todayISO(), num: '', asis: '', texto: '', textoIncluido: undefined, notas: [], fotos: [], audios: [], audioSecs: 0, transcript: '', informe: null, stage: 'capture' });
+const newVisit = () => ({ id: uid(), obraId: null, agentes: {}, guardada: false, pdfPendiente: false, obra: '', dir: '', fecha: todayISO(), num: '', asis: '', texto: '', textoIncluido: undefined, notas: [], fotos: [], audios: [], audioSecs: 0, transcript: '', informe: null, stage: 'capture' });
 let V = newVisit();
 const saveNow = () => idb.put('visit', V).catch(e => console.error(e));
 const saveV = debounce(saveNow, 300);
 
 // ---------- Vistas ----------
-let current = 'capture', beforeSettings = 'capture';
+let current = 'home', beforeSettings = 'home';
+const VIEWS = { home: 'Home', obra: 'Obra', obraform: 'ObraForm', delete: 'Delete', capture: 'Capture', progress: 'Progress', review: 'Review', done: 'Done', settings: 'Settings' };
+const FOOTERS = { obra: 'fObra', obraform: 'fObraForm', capture: 'fCapture', review: 'fReview', settings: 'fSettings' };
 function show(name) {
   current = name;
-  for (const v of ['Capture', 'Progress', 'Review', 'Done', 'Settings']) $('v' + v).classList.toggle('on', v.toLowerCase() === name);
-  $('fCapture').hidden = name !== 'capture';
-  $('fReview').hidden = name !== 'review';
-  $('fSettings').hidden = name !== 'settings';
-  document.querySelector('.bar').hidden = !['capture', 'review', 'settings'].includes(name);
-  if (name === 'capture') { requestAnimationFrame(sizeTape); updateGenerate(); }
+  for (const [k, v] of Object.entries(VIEWS)) $('v' + v).classList.toggle('on', k === name);
+  for (const [k, f] of Object.entries(FOOTERS)) $(f).hidden = k !== name;
+  document.querySelector('.bar').hidden = !FOOTERS[name];
+  if (name === 'capture') { fillFields(); requestAnimationFrame(sizeTape); updateGenerate(); }
   updateTop();
   window.scrollTo(0, 0);
 }
 function updateTop() {
-  $('topSub').textContent = current === 'settings' ? 'Ajustes' :
-    (V.obra ? V.obra + (V.num ? ', visita ' + V.num : '') : 'Nueva visita');
+  const visita = V.obra ? V.obra + (V.num ? ', visita ' + V.num : '') : 'Visita';
+  const t = {
+    home: ['Visitas de obra', 'Obras'],
+    obra: [OB ? OB.nombre : 'Obra', 'Historial de visitas'],
+    obraform: [editingId ? 'Editar obra' : 'Nueva obra', 'Datos fijos de la obra'],
+    delete: ['Eliminar obra', OB ? OB.nombre : ''],
+    settings: ['Ajustes', 'Conexión y datos'],
+  }[current] || ['Visita de obra', visita];
+  $('topTitle').textContent = t[0]; $('topSub').textContent = t[1];
+  const back = current !== 'home' && current !== 'progress';
+  $('btnBack').hidden = !back;
+  document.querySelector('.top .logo').style.display = back ? 'none' : '';
+}
+function goBack() {
+  if (rec.on) return;
+  if (current === 'settings') return show(beforeSettings);
+  if (current === 'obraform') return editingId && OB ? show('obra') : show('home');
+  if (current === 'delete') return show('obra');
+  if (['capture', 'review', 'done'].includes(current)) {
+    const o = OBRAS.find(x => x.id === V.obraId);
+    return o ? openObra(o.id) : (renderHome(), show('home'));
+  }
+  renderHome(); show('home');
 }
 
 // ---------- Datos de la visita ----------
-const fields = { fObra: 'obra', fDir: 'dir', fFecha: 'fecha', fNum: 'num', fAsis: 'asis', fTexto: 'texto' };
-function fillFields() { for (const [id, k] of Object.entries(fields)) $(id).value = V[k] || ''; }
+const fields = { fFecha: 'fecha', fNum: 'num', fAsis: 'asis', fTexto: 'texto' };
+function fillFields() {
+  for (const [id, k] of Object.entries(fields)) $(id).value = V[k] || '';
+  $('cObra').textContent = V.obra || 'Sin obra'; $('cDir').textContent = V.dir || '';
+}
 for (const [id, k] of Object.entries(fields)) {
   $(id).addEventListener('input', () => { V[k] = $(id).value; saveV(); updateGenerate(); if (k === 'obra' || k === 'num') updateTop(); });
-}
-$('fObra').addEventListener('change', () => {
-  const o = store.get('obras', {})[V.obra.trim()];
-  if (!o) return;
-  if (!V.dir && o.dir) V.dir = o.dir;
-  if (!V.num && o.num) V.num = String(Number(o.num) + 1);
-  if (!V.asis && o.asis) V.asis = o.asis;
-  fillFields(); saveV(); updateTop();
-});
-function fillObras() {
-  $('obrasList').innerHTML = '';
-  for (const name of Object.keys(store.get('obras', {}))) { const o = document.createElement('option'); o.value = name; $('obrasList').append(o); }
 }
 
 // ---------- Imágenes ----------
@@ -925,7 +1045,7 @@ function updateGenerate() {
   const compl = Boolean(V.informe);
   let note = '';
   if (!s.proxy || !s.token) note = 'Configura el proxy en Ajustes para poder generar el informe.';
-  else if (!V.obra.trim()) note = 'Escribe el nombre de la obra.';
+  else if (!V.obra.trim()) note = 'Elige la obra desde el listado.';
   else if (!hasContent) note = 'Graba el resumen, añade tus notas o escríbelas.';
   else if (compl && !hayNovedades(novedades())) note = 'Graba un audio complementario o añade notas o fotos nuevas.';
   $('capNote').textContent = note; $('capNote').hidden = !note;
@@ -936,18 +1056,23 @@ function updateGenerate() {
 }
 
 // ---------- Llamadas al proxy ----------
-async function api(path, body, contentType) {
+async function api(path, body, contentType, method, as = 'json') {
   const s = settings();
   const url = s.proxy.trim().replace(/\/+$/, '') + path;
   let r;
   try {
-    r = await fetch(url, { method: body == null ? 'GET' : 'POST', headers: { 'Authorization': 'Bearer ' + s.token, ...(contentType ? { 'Content-Type': contentType } : {}) }, body });
+    r = await fetch(url, { method: method || (body == null ? 'GET' : 'POST'), headers: { 'Authorization': 'Bearer ' + s.token, ...(contentType ? { 'Content-Type': contentType } : {}) }, body });
   } catch (e) {
-    throw new Error('No hay conexión con el proxy. Comprueba la cobertura y la URL en Ajustes.');
+    const err = new Error('No hay conexión con el proxy. Comprueba la cobertura y la URL en Ajustes.'); err.offline = true; throw err;
+  }
+  if (r.ok && as === 'blob') {
+    const cd = r.headers.get('Content-Disposition') || '';
+    const m = /filename="([^"]+)"/.exec(cd);
+    return { blob: await r.blob(), name: m ? m[1] : 'archivo' };
   }
   let data = {};
   try { data = await r.json(); } catch { }
-  if (!r.ok) throw new Error(data.error || ('Error ' + r.status + ' del proxy.'));
+  if (!r.ok) { const err = new Error(data.error || ('Error ' + r.status + ' del proxy.')); err.status = r.status; throw err; }
   return data;
 }
 
@@ -1024,7 +1149,13 @@ function datosVisita() {
     `- Visita nº: ${V.num || 'no indicado'}`,
     `- Redacta el informe: ${s.nombre || 'el jefe de obra'}, ${s.cargo || 'jefe de obra'} de ${s.empresa} (empresa contratista)`,
     `- Asistentes indicados en la app: ${(V.asis || '').trim() ? '\n' + V.asis.trim() : 'no indicados'}`,
+    ...agentesTxt(),
   ];
+}
+function agentesTxt() {
+  const a = V.agentes || {};
+  const l = [['Propiedad', a.propiedad], ['Dirección Facultativa', a.df], ['Dirección de Ejecución', a.deo], [`Encargado de ${settings().empresa}`, a.encargado]].filter(x => x[1]);
+  return l.length ? ['- Agentes de la obra:', ...l.map(([k, v]) => `  · ${k}: ${v}`)] : [];
 }
 async function imagenes(content, notas, fotos) {
   for (const n of notas) {
@@ -1042,10 +1173,7 @@ async function imagenes(content, notas, fotos) {
 async function guardarResultado(informe, stepIndex, prev) {
   V.informe = normalize(informe, prev);
   marcarIncluido();
-  V.stage = 'review';
-  const obras = store.get('obras', {});
-  obras[V.obra.trim()] = { dir: V.dir, num: Number(V.num) || 0, asis: V.asis };
-  store.set('obras', obras); fillObras();
+  V.stage = 'review'; V.guardada = false;
   await saveNow();
   setStep(stepIndex, 'ok');
   renderThumbs('notas'); renderThumbs('fotos'); renderSegs();
@@ -1335,10 +1463,10 @@ $('btnPdf').addEventListener('click', async () => {
     }
     const doc = buildPdf(window.jspdf.jsPDF, { obra: V.obra, dir: V.dir, fecha: V.fecha, num: V.num, nombre: s.nombre, cargo: s.cargo, empresa: s.empresa, informe: V.informe, fotos });
     lastPdf = new File([doc.output('blob')], pdfName(), { type: 'application/pdf' });
-    $('pdfName').textContent = lastPdf.name;
-    $('btnShare').hidden = !(navigator.canShare && navigator.canShare({ files: [lastPdf] }));
-    V.stage = 'done'; await saveNow();
-    show('done');
+    await idb.put('pdf', lastPdf);
+    V.stage = 'done'; V.pdfPendiente = true; V.guardada = false; await saveNow();
+    showDone();
+    syncVisit();
   } catch (e) {
     alert('No se ha podido crear el PDF: ' + e.message);
   } finally {
@@ -1350,29 +1478,35 @@ $('btnShare').addEventListener('click', async () => {
   try { await navigator.share({ files: [lastPdf], title: lastPdf.name }); }
   catch (e) { if (e.name !== 'AbortError') toast('No se ha podido compartir. Usa Descargar PDF.'); }
 });
-$('btnDownload').addEventListener('click', () => {
-  if (!lastPdf) return;
-  const u = URL.createObjectURL(lastPdf);
-  const a = el('a', { href: u, download: lastPdf.name }); document.body.append(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(u), 10000);
-  toast('PDF guardado en Descargas.');
-});
+$('btnDownload').addEventListener('click', () => { if (lastPdf) downloadFile(lastPdf); });
 $('btnBackReview').addEventListener('click', () => { V.stage = 'review'; saveV(); show('review'); });
+async function showDone() {
+  if (!lastPdf) lastPdf = await idb.get('pdf');
+  $('pdfName').textContent = lastPdf ? lastPdf.name : '';
+  $('btnShare').hidden = !(lastPdf && navigator.canShare && navigator.canShare({ files: [lastPdf] }));
+  syncStatus();
+  show('done');
+}
 
 // ---------- Visita nueva ----------
-async function resetVisit() {
-  if (rec.on) return;
-  if (!confirm('Se borrará de este móvil la visita actual: audio, fotos e informe. ¿Empezar una visita nueva?')) return;
+// Borra del móvil la visita en curso (audio, fotos, informe y PDF).
+async function clearVisit(next) {
   for (const u of urls.values()) URL.revokeObjectURL(u); urls.clear();
   await idb.clear();
-  V = newVisit(); levels = []; lastPdf = null;
+  V = next || newVisit(); levels = []; lastPdf = null;
   await saveNow();
   fillFields(); renderThumbs('notas'); renderThumbs('fotos'); renderSegs(); updateTimer(); drawTape();
   $('btnRec').setAttribute('aria-label', 'Empezar a grabar');
-  show('capture');
 }
-$('btnNewVisit').addEventListener('click', resetVisit);
-$('btnNewVisit2').addEventListener('click', resetVisit);
+$('btnNewVisit').addEventListener('click', async () => {
+  if (rec.on) return;
+  const aviso = V.guardada ? 'La visita ya está guardada en el historial. Se borrarán del móvil el audio y las fotos.'
+    : 'Se borrará de este móvil todo lo de esta visita: audio, fotos e informe. No está guardada en el historial.';
+  if (!confirm(aviso + ' ¿Descartar la visita?')) return;
+  const obraId = V.obraId;
+  await clearVisit();
+  if (obraId && OBRAS.some(o => o.id === obraId)) openObra(obraId); else { renderHome(); show('home'); }
+});
 
 // ---------- Ajustes ----------
 function openSettings() {
@@ -1381,7 +1515,7 @@ function openSettings() {
   $('sProxy').value = s.proxy; $('sToken').value = s.token; $('sNombre').value = s.nombre; $('sCargo').value = s.cargo; $('sEmpresa').value = s.empresa;
   $('testMsg').textContent = '';
   $('btnCloseSettings').hidden = !(s.proxy && s.token);
-  if (current !== 'settings') beforeSettings = current === 'progress' ? 'capture' : current;
+  if (current !== 'settings') beforeSettings = ['progress', 'delete', 'obraform'].includes(current) ? 'home' : current;
   show('settings');
 }
 function readSettings() {
@@ -1394,6 +1528,7 @@ $('btnSaveSettings').addEventListener('click', () => {
   if (!/^https:\/\//.test(s.proxy)) { alert('La URL del proxy debe empezar por https://'); return; }
   if (!s.token) { alert('Falta el token de la app.'); return; }
   store.set('settings', s); toast('Ajustes guardados.');
+  loadObras();
   show(beforeSettings);
 });
 $('btnTest').addEventListener('click', async () => {
@@ -1402,23 +1537,381 @@ $('btnTest').addEventListener('click', async () => {
   $('testMsg').textContent = 'Probando…';
   try {
     const r = await api('/health');
-    const faltan = [!r.claude && 'la clave de Claude (ANTHROPIC_API_KEY)', !r.transcripcion && 'el enlace de Workers AI (AI)'].filter(Boolean);
+    const faltan = [!r.claude && 'la clave de Claude (ANTHROPIC_API_KEY)', !r.transcripcion && 'el enlace de Workers AI (AI)',
+      !r.datos && 'la base de datos D1 (DB)', !r.archivos && 'el bucket R2 (FILES)'].filter(Boolean);
     $('testMsg').textContent = faltan.length ? 'Conecta, pero falta en el worker ' + faltan.join(' y ') + '.' : 'Todo correcto. Modelo: ' + r.modelo + '.';
   } catch (e) { $('testMsg').textContent = e.message; }
   finally { store.set('settings', prev); }
 });
 
+
+// ---------- Obras (guardadas en Cloudflare, con copia en el móvil para usarlas sin cobertura) ----------
+let OBRAS = store.get('obrasCache', []);
+let OB = null;          // obra abierta
+let editingId = null;   // obra en edición
+const fechaCorta2 = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; };
+const hasVisitContent = () => Boolean(V.audios.length || V.notas.length || V.fotos.length || (V.texto || '').trim() || V.informe);
+
+async function loadObras() {
+  const s = settings();
+  if (!s.proxy || !s.token) return;
+  try {
+    const r = await api('/obras');
+    OBRAS = r.obras || [];
+    store.set('obrasCache', OBRAS);
+    $('homeStatus').hidden = true;
+    checkImport();
+  } catch (e) {
+    $('homeStatus').textContent = e.offline ? 'Sin conexión. Se muestra el último listado guardado en el móvil.' : e.message;
+    $('homeStatus').hidden = false;
+  }
+  if (current === 'home') renderHome();
+  if (current === 'obra' && OB) { const o = OBRAS.find(x => x.id === OB.id); if (o) { OB = o; renderObraHead(); } }
+}
+
+function renderHome() {
+  // Visita en curso
+  const cur = hasVisitContent() && V.obra;
+  $('homeCurrent').hidden = !cur;
+  if (cur) {
+    const estado = V.guardada ? 'guardada en el historial' : V.informe ? 'con informe sin guardar' : 'sin informe todavía';
+    $('homeCurrentTxt').textContent = `${V.obra}${V.num ? ', visita ' + V.num : ''}: ${estado}.`;
+  }
+  const box = $('obraList'); box.innerHTML = '';
+  if (!OBRAS.length) {
+    box.append(el('p', { class: 'empty' }, 'Todavía no hay obras. Crea la primera con «Nueva obra»; la ficha se guarda una vez y cada visita la usa.'));
+    return;
+  }
+  for (const o of OBRAS) {
+    const n = Number(o.n_visitas) || 0;
+    const info = n ? `${n} ${n === 1 ? 'visita' : 'visitas'}, la última el ${fechaCorta2(o.ultima_fecha)}` : 'Sin visitas guardadas';
+    box.append(el('button', { class: 'obra-card', type: 'button', onclick: () => openObra(o.id) },
+      el('b', {}, o.nombre), o.direccion ? el('span', {}, o.direccion) : null, el('small', {}, info)));
+  }
+}
+$('btnContinue').addEventListener('click', () => continueVisit());
+function continueVisit() {
+  if (V.stage === 'done') showDone();
+  else if (V.informe && V.stage === 'review') { renderReview(); show('review'); }
+  else show('capture');
+}
+
+// ---------- Ficha de obra ----------
+function renderObraHead() {
+  $('obNombre').textContent = OB.nombre;
+  $('obDir').textContent = OB.direccion || '';
+  $('obDir').hidden = !OB.direccion;
+  const dl = $('obAgents'); dl.innerHTML = '';
+  for (const [k, v] of [['Propiedad', OB.propiedad], ['D. Facultativa', OB.df], ['D. Ejecución', OB.deo], ['Encargado', OB.encargado]]) {
+    if (!v) continue;
+    dl.append(el('dt', {}, k), el('dd', {}, v));
+  }
+  const enCurso = hasVisitContent() && V.obraId === OB.id;
+  $('btnStartVisit').textContent = enCurso ? `Continuar la visita nº ${V.num || ''}`.trim() : `Nueva visita, nº ${(Number(OB.ultima_num) || 0) + 1}`;
+  updateTop();
+}
+async function openObra(id) {
+  OB = OBRAS.find(o => o.id === id); if (!OB) { renderHome(); show('home'); return; }
+  renderObraHead();
+  show('obra');
+  await loadVisitas();
+}
+async function loadVisitas() {
+  const box = $('visList');
+  box.innerHTML = '';
+  box.append(el('p', { class: 'skel' }, 'Cargando el historial…'));
+  const obraId = OB.id;
+  let visitas = [];
+  try {
+    visitas = (await api(`/obras/${obraId}/visitas`)).visitas || [];
+  } catch (e) {
+    if (!OB || OB.id !== obraId) return;
+    box.innerHTML = '';
+    box.append(el('p', { class: 'empty' }, e.offline ? 'Sin conexión: el historial no se puede cargar ahora.' : e.message),
+      el('button', { class: 'btn wide', type: 'button', onclick: loadVisitas }, 'Reintentar'));
+    return;
+  }
+  if (!OB || OB.id !== obraId) return;
+  box.innerHTML = '';
+  if (hasVisitContent() && V.obraId === obraId && !V.guardada) {
+    box.append(el('div', { class: 'vis cur' },
+      el('div', { class: 'vis-h' }, el('b', {}, `Visita ${V.num || ''} en curso`), el('span', {}, fechaLarga(V.fecha))),
+      el('p', { class: 'vis-r' }, V.informe ? 'Informe preparado, falta crear el PDF y guardarlo.' : 'Todavía sin informe.'),
+      el('button', { class: 'btn primary wide', type: 'button', onclick: continueVisit }, 'Continuar')));
+  }
+  if (!visitas.length) { box.append(el('p', { class: 'empty' }, 'Aún no hay visitas guardadas en esta obra.')); return; }
+  const emp = settings().empresa || 'Contratista';
+  for (const v of visitas) {
+    const chips = el('div', { class: 'chips' });
+    for (const r of ROLES) {
+      const n = v.pendientes && v.pendientes[r.k];
+      if (n) chips.append(el('span', { class: 'chip', title: r.t(emp) }, el('i', { style: 'background:' + r.c }), `${r.k === 'Otros' ? 'Otros' : r.k} ${n}`));
+    }
+    box.append(el('div', { class: 'vis' },
+      el('div', { class: 'vis-h' }, el('b', {}, `Visita ${v.num || 's/n'}`), el('span', {}, fechaLarga(v.fecha))),
+      v.resumen ? el('p', { class: 'vis-r' }, v.resumen) : null,
+      chips,
+      v.pdf ? el('div', { class: 'row-btns' },
+        el('button', { class: 'btn', type: 'button', onclick: e => historicPdf(v, 'download', e.currentTarget) }, 'Descargar PDF'),
+        el('button', { class: 'btn', type: 'button', onclick: e => historicPdf(v, 'share', e.currentTarget) }, 'Compartir'))
+        : el('p', { class: 'empty' }, 'Sin PDF guardado.')));
+  }
+}
+async function historicPdf(v, mode, btn) {
+  const label = btn.textContent; btn.disabled = true; btn.textContent = 'Cargando…';
+  try {
+    const { blob, name } = await api(`/visitas/${v.id}/pdf`, null, null, 'GET', 'blob');
+    const file = new File([blob], name, { type: 'application/pdf' });
+    if (mode === 'share' && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: name }); } catch (e) { if (e.name !== 'AbortError') throw e; }
+    } else downloadFile(file);
+  } catch (e) { alert('No se ha podido obtener el PDF: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = label; }
+}
+function downloadFile(file) {
+  const u = URL.createObjectURL(file);
+  const a = el('a', { href: u, download: file.name }); document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 10000);
+  toast('Guardado en Descargas.');
+}
+
+// Empezar o continuar una visita de la obra abierta
+$('btnStartVisit').addEventListener('click', async () => {
+  if (hasVisitContent() && V.obraId === OB.id) { continueVisit(); return; }
+  if (hasVisitContent()) {
+    const aviso = V.guardada
+      ? `La visita en curso de ${V.obra} ya está guardada en el historial. Se cerrará y se borrarán del móvil su audio y sus fotos.`
+      : `Hay una visita en curso de ${V.obra} que NO está guardada en el historial. Si empiezas otra, se perderá.`;
+    if (!confirm(aviso + ' ¿Empezar la visita nueva?')) return;
+  }
+  const next = newVisit();
+  Object.assign(next, {
+    obraId: OB.id, obra: OB.nombre, dir: OB.direccion || '',
+    num: String((Number(OB.ultima_num) || 0) + 1),
+    agentes: { propiedad: OB.propiedad || '', df: OB.df || '', deo: OB.deo || '', encargado: OB.encargado || '' },
+    asis: [OB.propiedad && `${OB.propiedad}, Propiedad`, OB.df && `${OB.df}, Dirección Facultativa`, OB.deo && `${OB.deo}, Dirección de Ejecución`,
+      OB.encargado && `${OB.encargado}, encargado`, (OB.asistentes || '').trim()].filter(Boolean).join('\n'),
+  });
+  await clearVisit(next);
+  show('capture');
+});
+
+// ---------- Alta y edición de obra ----------
+const OF = { ofNombre: 'nombre', ofDir: 'direccion', ofProp: 'propiedad', ofDf: 'df', ofDeo: 'deo', ofEnc: 'encargado', ofAsis: 'asistentes' };
+function openObraForm(obra) {
+  editingId = obra ? obra.id : null;
+  for (const [id, k] of Object.entries(OF)) $(id).value = obra ? (obra[k] || '') : '';
+  $('ofTitle').textContent = obra ? 'Editar obra' : 'Nueva obra';
+  $('ofErr').hidden = true;
+  show('obraform');
+  if (!obra) $('ofNombre').focus();
+}
+$('btnNewObra').addEventListener('click', () => openObraForm(null));
+$('btnEditObra').addEventListener('click', () => openObraForm(OB));
+$('btnSaveObra').addEventListener('click', async () => {
+  const data = {}; for (const [id, k] of Object.entries(OF)) data[k] = $(id).value.trim();
+  if (!data.nombre) { $('ofErr').textContent = 'Escribe el nombre de la obra.'; $('ofErr').hidden = false; return; }
+  const btn = $('btnSaveObra'); btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const r = editingId ? await api('/obras/' + editingId, JSON.stringify(data), 'application/json', 'PUT')
+      : await api('/obras', JSON.stringify(data), 'application/json', 'POST');
+    const o = r.obra;
+    OBRAS = [...OBRAS.filter(x => x.id !== o.id), o].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+    store.set('obrasCache', OBRAS);
+    // Si la visita en curso es de esta obra, se actualizan sus datos
+    if (V.obraId === o.id) {
+      Object.assign(V, { obra: o.nombre, dir: o.direccion || '', agentes: { propiedad: o.propiedad || '', df: o.df || '', deo: o.deo || '', encargado: o.encargado || '' } });
+      saveV();
+    }
+    toast(editingId ? 'Obra actualizada.' : 'Obra creada.');
+    openObra(o.id);
+  } catch (e) {
+    $('ofErr').textContent = e.message; $('ofErr').hidden = false;
+  } finally { btn.disabled = false; btn.textContent = 'Guardar obra'; }
+});
+
+// ---------- Borrado de obra en tres pasos ----------
+// La app y el proxy comprueban cada paso: 1) ver qué se borra, 2) escribir el nombre exacto, 3) escribir el código de 6 cifras.
+let DEL = null;
+function renderDelSteps(active) {
+  const labels = ['Revisar lo que se va a eliminar', 'Escribir el nombre de la obra', 'Escribir el código de confirmación'];
+  $('delSteps').innerHTML = '';
+  labels.forEach((l, i) => {
+    const li = el('li', { class: i + 1 < active ? 'ok' : i + 1 === active ? 'run' : '' }, el('div', {}, el('b', {}, l)));
+    $('delSteps').append(li);
+  });
+}
+function delError(msg) { $('delErr').textContent = msg; $('delErr').hidden = !msg; }
+$('btnDelObra').addEventListener('click', async () => {
+  if (rec.on || busy) return;
+  DEL = { obra: OB };
+  delError(''); renderDelSteps(1);
+  const body = $('delBody'); body.innerHTML = '';
+  body.append(el('p', { class: 'skel' }, 'Comprobando qué contiene la obra…'));
+  show('delete');
+  try {
+    const r = await api(`/obras/${OB.id}/borrado/1`, '{}', 'application/json', 'POST');
+    DEL.token = r.token;
+    body.innerHTML = '';
+    const curAviso = V.obraId === OB.id && hasVisitContent() ? el('p', {}, 'La visita en curso de esta obra también se descartará del móvil.') : null;
+    body.append(el('div', { class: 'del-box' },
+      el('p', {}, `Vas a eliminar la obra «${r.nombre}» con ${r.visitas} ${r.visitas === 1 ? 'visita' : 'visitas'} y ${r.pdfs} PDF.`),
+      el('p', {}, 'Desaparecerá del listado y del historial. Se guardará una copia en la papelera de Cloudflare durante 30 días, por si hubiera que recuperarla.'),
+      curAviso,
+      el('button', { class: 'btn danger wide', type: 'button', onclick: delPaso2 }, 'Continuar')));
+  } catch (e) { body.innerHTML = ''; delError(e.message); }
+});
+function delPaso2() {
+  delError(''); renderDelSteps(2);
+  const body = $('delBody'); body.innerHTML = '';
+  const input = el('input', { autocomplete: 'off', 'aria-label': 'Nombre de la obra', placeholder: DEL.obra.nombre });
+  const btn = el('button', { class: 'btn danger wide', type: 'button', disabled: '' }, 'Confirmar el nombre');
+  input.addEventListener('input', () => { btn.disabled = input.value.trim().toLocaleLowerCase('es') !== DEL.obra.nombre.trim().toLocaleLowerCase('es'); });
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      const r = await api(`/obras/${DEL.obra.id}/borrado/2`, JSON.stringify({ token: DEL.token, nombre: input.value }), 'application/json', 'POST');
+      DEL.token = r.token; DEL.codigo = r.codigo;
+      delPaso3();
+    } catch (e) { delError(e.message); btn.disabled = false; }
+  });
+  body.append(el('div', { class: 'del-box' }, el('p', {}, `Para confirmar, escribe el nombre de la obra tal como aparece: «${DEL.obra.nombre}».`), input, el('div', { style: 'height:12px' }), btn));
+  input.focus();
+}
+function delPaso3() {
+  delError(''); renderDelSteps(3);
+  const body = $('delBody'); body.innerHTML = '';
+  const input = el('input', { inputmode: 'numeric', autocomplete: 'off', maxlength: '6', 'aria-label': 'Código de confirmación', placeholder: '000000' });
+  const btn = el('button', { class: 'btn danger wide', type: 'button', disabled: '' }, 'Eliminar la obra definitivamente');
+  input.addEventListener('input', () => { btn.disabled = input.value.replace(/\D/g, '').length !== 6; });
+  btn.addEventListener('click', async () => {
+    btn.disabled = true; btn.textContent = 'Eliminando…';
+    try {
+      const r = await api(`/obras/${DEL.obra.id}/borrado/3`, JSON.stringify({ token: DEL.token, codigo: input.value.replace(/\D/g, '') }), 'application/json', 'POST');
+      const id = DEL.obra.id;
+      OBRAS = OBRAS.filter(o => o.id !== id); store.set('obrasCache', OBRAS);
+      if (V.obraId === id) await clearVisit();
+      OB = null; DEL = null;
+      toast(`Obra eliminada. Copia en la papelera durante ${r.dias} días.`, 4000);
+      renderHome(); show('home');
+    } catch (e) { delError(e.message); btn.disabled = false; btn.textContent = 'Eliminar la obra definitivamente'; }
+  });
+  body.append(el('div', { class: 'del-box' },
+    el('p', {}, 'Último paso. Escribe este código para eliminar la obra:'),
+    el('div', { class: 'code', 'aria-label': 'Código ' + DEL.codigo.split('').join(' ') }, DEL.codigo),
+    input, el('div', { style: 'height:12px' }), btn,
+    el('p', { class: 'hint', style: 'margin:10px 0 0' }, 'El código caduca a los 10 minutos.')));
+  input.focus();
+}
+$('btnDelCancel').addEventListener('click', () => { DEL = null; if (OB) openObra(OB.id); else { renderHome(); show('home'); } });
+
+// ---------- Guardar la visita en el historial ----------
+let syncing = false;
+function syncStatus(state, msg) {
+  const m = $('syncMsg');
+  if (!state) state = V.guardada ? 'ok' : V.pdfPendiente ? 'wait' : '';
+  m.className = 'sync' + (state === 'ok' ? ' ok' : state === 'bad' ? ' bad' : '');
+  m.textContent = msg || (state === 'ok' ? 'Guardado en el historial de la obra.' : state === 'run' ? 'Guardando en el historial…' : state === 'wait' ? 'Pendiente de guardar en el historial.' : '');
+  $('btnSyncRetry').hidden = !(state === 'bad' || state === 'wait');
+}
+async function ensureObra() {
+  if (V.obraId && OBRAS.some(o => o.id === V.obraId)) return V.obraId;
+  // Visita sin obra en el listado (por ejemplo, de la versión anterior): se busca por nombre o se crea
+  const o = OBRAS.find(x => x.nombre.trim().toLocaleLowerCase('es') === V.obra.trim().toLocaleLowerCase('es'));
+  if (o) { V.obraId = o.id; return o.id; }
+  const r = await api('/obras', JSON.stringify({ nombre: V.obra, direccion: V.dir, asistentes: '' }), 'application/json', 'POST');
+  OBRAS = [...OBRAS, r.obra]; store.set('obrasCache', OBRAS);
+  V.obraId = r.obra.id;
+  return r.obra.id;
+}
+async function syncVisit() {
+  if (syncing || !V.pdfPendiente) return;
+  syncing = true; syncStatus('run');
+  try {
+    const pdf = lastPdf || await idb.get('pdf');
+    if (!pdf) throw new Error('No se encuentra el PDF en el móvil. Vuelve al informe y créalo de nuevo.');
+    const obraId = await ensureObra();
+    const s = settings();
+    await api('/visitas/' + encodeURIComponent(V.id), JSON.stringify({
+      obra_id: obraId, num: V.num, fecha: V.fecha,
+      redacta: [s.nombre, s.cargo].filter(Boolean).join(', '), informe: V.informe,
+    }), 'application/json', 'PUT');
+    await api('/visitas/' + encodeURIComponent(V.id) + '/pdf', pdf, 'application/pdf', 'PUT');
+    V.pdfPendiente = false; V.guardada = true; await saveNow();
+    syncStatus('ok');
+    loadObras();
+  } catch (e) {
+    syncStatus('bad', e.offline ? 'Sin conexión: el PDF está en el móvil y se guardará en el historial cuando vuelva la cobertura.' : 'No se ha guardado en el historial: ' + e.message);
+  } finally { syncing = false; }
+}
+$('btnSyncRetry').addEventListener('click', syncVisit);
+window.addEventListener('online', () => { if (V.pdfPendiente) syncVisit(); loadObras(); });
+
+$('btnFinish').addEventListener('click', async () => {
+  if (V.pdfPendiente && !confirm('El PDF todavía NO está guardado en el historial. Si terminas ahora, esta visita se perderá. ¿Terminar igualmente?')) return;
+  if (!V.pdfPendiente && !confirm('La visita está guardada en el historial. Se borrarán del móvil el audio y las fotos. ¿Terminar la visita?')) return;
+  const obraId = V.obraId;
+  await clearVisit();
+  if (obraId && OBRAS.some(o => o.id === obraId)) openObra(obraId); else { renderHome(); show('home'); }
+});
+
+// ---------- Importar las obras que la versión anterior recordaba en el móvil ----------
+function checkImport() {
+  const viejas = Object.entries(store.get('obras', {})).filter(([n]) => n.trim() && !OBRAS.some(o => o.nombre.toLocaleLowerCase('es') === n.trim().toLocaleLowerCase('es')));
+  const show1 = viejas.length && !store.get('importHecho', false);
+  $('importBox').hidden = !show1;
+  if (show1) $('importTxt').textContent = `Este móvil recuerda ${viejas.length} ${viejas.length === 1 ? 'obra' : 'obras'} de la versión anterior de la app: ${viejas.map(v => v[0]).join(', ')}.`;
+  return viejas;
+}
+$('btnImport').addEventListener('click', async () => {
+  const btn = $('btnImport'); btn.disabled = true;
+  try {
+    for (const [nombre, o] of checkImport()) {
+      const r = await api('/obras', JSON.stringify({ nombre, direccion: o.dir || '', asistentes: o.asis || '' }), 'application/json', 'POST');
+      OBRAS.push(r.obra);
+    }
+    store.set('importHecho', true); toast('Obras importadas.');
+    await loadObras(); renderHome();
+  } catch (e) { alert('No se han podido importar: ' + e.message); }
+  finally { btn.disabled = false; }
+});
+
+// ---------- Exportar y copia de seguridad ----------
+async function exportar(tipo, btn) {
+  const label = btn.textContent; btn.disabled = true; btn.textContent = 'Preparando…';
+  try {
+    const { blob, name } = await api('/export?tipo=' + tipo, null, null, 'GET', 'blob');
+    downloadFile(new File([blob], name, { type: 'text/csv' }));
+  } catch (e) { alert('No se ha podido exportar: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = label; }
+}
+$('btnExpVisitas').addEventListener('click', e => exportar('visitas', e.currentTarget));
+$('btnExpPend').addEventListener('click', e => exportar('pendientes', e.currentTarget));
+$('btnBackup').addEventListener('click', async () => {
+  $('backupMsg').textContent = 'Haciendo la copia…';
+  try {
+    const r = await api('/copia', '{}', 'application/json', 'POST');
+    $('backupMsg').textContent = `Copia guardada en Cloudflare (${r.key}): ${r.obras} obras, ${r.visitas} visitas y ${r.pendientes} pendientes.`;
+  } catch (e) { $('backupMsg').textContent = e.message; }
+});
+
+$('btnBack').addEventListener('click', goBack);
+
 // ---------- Arranque ----------
 (async function init() {
   try { const saved = await idb.get('visit'); if (saved && saved.id) V = { ...newVisit(), ...saved }; } catch (e) { console.error(e); }
   if (V.informe && V.textoIncluido === undefined) { marcarIncluido(); await saveNow(); }
-  fillFields(); fillObras();
+  fillFields();
   await renderThumbs('notas'); await renderThumbs('fotos');
   renderSegs(); updateTimer();
   const s = settings();
-  if (!s.proxy || !s.token) { beforeSettings = 'capture'; openSettings(); }
-  else if (V.informe && (V.stage === 'review' || V.stage === 'done')) { renderReview(); show('review'); }
-  else show('capture');
+  renderHome();
+  if (!s.proxy || !s.token) { beforeSettings = 'home'; openSettings(); }
+  else {
+    show('home');
+    loadObras();
+    if (V.pdfPendiente) syncVisit();
+  }
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
 })();

@@ -1,5 +1,5 @@
 // Guarda la app en el móvil para que se abra y grabe aunque no haya cobertura en obra.
-const CACHE = 'visitas-obra-v2';
+const CACHE = 'visitas-obra-v3';
 const ASSETS = [
   './', 'index.html', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png',
