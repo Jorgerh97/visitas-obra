@@ -229,6 +229,34 @@ details.trans textarea{min-height:200px;margin:8px 0}
 .btn.danger:disabled{background:var(--line2);border-color:var(--line2)}
 .skel{color:var(--muted);font-size:15px;padding:8px 0}
 
+.handoff{margin:0 0 6px}
+
+/* Ordenador: pantalla grande */
+@media (min-width:960px){
+  main{max-width:1200px;padding:24px 32px 32px}
+  main.split{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:36px;align-items:start}
+  main.split>.demo-banner{grid-column:1/-1}
+  main.split #vHome{display:block;position:sticky;top:96px;max-height:calc(100vh - 190px);overflow-y:auto;padding:2px 8px 2px 2px}
+  main.split #vHome .home-foot{margin-top:18px}
+  .obra-card.sel{background:var(--tint);border-left-color:var(--primary);box-shadow:inset 0 0 0 1px var(--brand)}
+  #visList{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;align-items:start}
+  #visList .vis{margin:0}
+  #visList>.empty,#visList>.skel,#visList>.btn{grid-column:1/-1}
+  .cap-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:start}
+  .cap-r{position:sticky;top:96px}
+  #vReview{max-width:980px;margin:0 auto}
+  .pend .grid3{grid-template-columns:1.25fr 1.05fr 1fr .8fr 1.4fr}
+  .pend .grid3 .full{grid-column:auto}
+  #rv-fotos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #rv-fotos>h2{grid-column:1/-1}
+  #rv-fotos .item{margin:0}
+  #vSettings,#vObraForm,#vDelete,#vProgress,#vDone{max-width:660px;margin:0 auto}
+  .bar>div{max-width:1136px;display:flex;justify-content:flex-end;align-items:center;gap:16px}
+  .bar .btn.wide{width:auto;min-width:340px}
+  .bar .note{margin:0;flex:1;text-align:right}
+  .top{padding-left:24px;padding-right:18px}
+}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -251,6 +279,10 @@ details.trans textarea{min-height:200px;margin:8px 0}
       <h2>Visita en curso</h2>
       <p id="homeCurrentTxt"></p>
       <button class="btn primary wide" id="btnContinue">Continuar la visita</button>
+    </div>
+    <div class="compl" id="draftsBox" hidden>
+      <h2>Enviadas desde otro dispositivo</h2>
+      <div id="draftsList"></div>
     </div>
     <div class="home-h"><h2 class="big">Obras</h2><button class="btn" id="btnNewObra">Nueva obra</button></div>
     <p class="hint" id="homeStatus" hidden></p>
@@ -307,6 +339,7 @@ details.trans textarea{min-height:200px;margin:8px 0}
       <p>Graba lo que se te olvidó contar o quieras precisar. También puedes añadir notas o fotos nuevas. Se incorporará al informe sin perder los cambios que ya hayas hecho.</p>
       <button class="link" id="btnSeeReport" style="padding-left:0">Ver el informe</button>
     </div>
+    <div class="cap-cols"><div class="cap-l">
     <div class="blk">
       <h2>Datos de la visita</h2>
       <p class="obra-line"><b id="cObra"></b><br><span class="hint" id="cDir"></span></p>
@@ -331,6 +364,7 @@ details.trans textarea{min-height:200px;margin:8px 0}
       <input type="file" id="inFotos" accept="image/*" multiple hidden>
     </div>
 
+    </div><div class="cap-r">
     <div class="blk">
       <h2>Resumen hablado</h2>
       <p class="hint">Lee tus notas y cuenta todo lo que recuerdes: qué se revisó, quién pidió qué, qué se decidió y qué queda pendiente de cada uno.</p>
@@ -347,7 +381,9 @@ details.trans textarea{min-height:200px;margin:8px 0}
       <textarea id="fTexto" rows="4" placeholder="Lo que prefieras escribir en vez de decir."></textarea>
     </div>
 
+    </div></div>
     <div class="blk end">
+      <p class="handoff"><button class="btn wide" id="btnHandoff" style="max-width:420px">Continuar en otro dispositivo</button></p>
       <p id="redoWrap" hidden style="margin:0"><button class="link" id="btnRedo">Rehacer el informe desde cero con todo el material</button></p>
       <button class="link danger" id="btnNewVisit">Descartar esta visita</button>
     </div>
@@ -373,6 +409,7 @@ details.trans textarea{min-height:200px;margin:8px 0}
     <div class="more">
       <p>¿Se te olvidó contar algo? Graba un audio complementario y se añadirá a este informe.</p>
       <button class="btn wide" id="btnComplement">Grabar audio complementario</button>
+      <button class="btn wide" id="btnHandoff2">Continuar en otro dispositivo</button>
     </div>
     <div id="rv"></div>
   </section>
@@ -720,8 +757,17 @@ const saveV = debounce(saveNow, 300);
 let current = 'home', beforeSettings = 'home';
 const VIEWS = { home: 'Home', obra: 'Obra', obraform: 'ObraForm', delete: 'Delete', capture: 'Capture', progress: 'Progress', review: 'Review', done: 'Done', settings: 'Settings' };
 const FOOTERS = { obra: 'fObra', obraform: 'fObraForm', capture: 'fCapture', review: 'fReview', settings: 'fSettings' };
+const wideMQ = window.matchMedia ? matchMedia('(min-width: 960px)') : { matches: false, addEventListener() { } };
+const isSplit = () => wideMQ.matches && current === 'obra';
 function show(name) {
+  // En el ordenador, el inicio muestra directamente la última obra abierta junto al listado
+  if (name === 'home' && wideMQ.matches && typeof OBRAS !== 'undefined' && OBRAS.length) {
+    const id = OB && OBRAS.some(o => o.id === OB.id) ? OB.id : OBRAS[0].id;
+    if (!(current === 'obra' && OB && OB.id === id)) { openObra(id); return; }
+    name = 'obra';
+  }
   current = name;
+  document.querySelector('main').classList.toggle('split', isSplit());
   for (const [k, v] of Object.entries(VIEWS)) $('v' + v).classList.toggle('on', k === name);
   for (const [k, f] of Object.entries(FOOTERS)) $(f).hidden = k !== name;
   document.querySelector('.bar').hidden = !FOOTERS[name];
@@ -739,10 +785,11 @@ function updateTop() {
     settings: ['Ajustes', 'Conexión y datos'],
   }[current] || ['Visita de obra', visita];
   $('topTitle').textContent = t[0]; $('topSub').textContent = t[1];
-  const back = current !== 'home' && current !== 'progress';
+  const back = current !== 'home' && current !== 'progress' && !isSplit();
   $('btnBack').hidden = !back;
   document.querySelector('.top .logo').style.display = back ? 'none' : '';
 }
+wideMQ.addEventListener('change', () => { if (current === 'home' || current === 'obra') { renderHome(); show(current); } else show(current); });
 function goBack() {
   if (rec.on) return;
   if (current === 'settings') return show(beforeSettings);
@@ -1090,8 +1137,9 @@ function renderSteps() {
 function setStep(i, state, detail) { steps[i].state = state; if (detail !== undefined) steps[i].detail = detail; renderSteps(); }
 
 let lastMode = 'full';
+let retryFn = () => generate();
 async function generate(mode = lastMode) {
-  lastMode = mode;
+  lastMode = mode; retryFn = () => generate();
   if (rec.on) await stopRec();
   const pend = V.audios.filter(a => a.text == null);
   const hasAudio = pend.length > 0;
@@ -1277,7 +1325,7 @@ $('btnRedo').addEventListener('click', () => {
   if (!confirm('Se redactará un informe nuevo con todo el audio, las notas y las fotos, y se perderán los cambios que hayas hecho en el actual. ¿Continuar?')) return;
   generate('full');
 });
-$('btnRetry').addEventListener('click', () => generate());
+$('btnRetry').addEventListener('click', () => retryFn());
 function irAComplementar() {
   show('capture');
   requestAnimationFrame(() => document.querySelector('.recorder').scrollIntoView({ block: 'center' }));
@@ -1285,7 +1333,7 @@ function irAComplementar() {
 $('btnComplement').addEventListener('click', irAComplementar);
 $('btnComplement2').addEventListener('click', irAComplementar);
 $('btnSeeReport').addEventListener('click', () => { if (!rec.on) show('review'); });
-$('btnBackCapture').addEventListener('click', () => show('capture'));
+$('btnBackCapture').addEventListener('click', () => { if (hasVisitContent()) continueVisit(); else { renderHome(); show('home'); } });
 
 // ---------- Revisión ----------
 function el(tag, props = {}, ...kids) {
@@ -1561,6 +1609,7 @@ async function loadObras() {
     store.set('obrasCache', OBRAS);
     $('homeStatus').hidden = true;
     checkImport();
+    await loadDrafts();
   } catch (e) {
     $('homeStatus').textContent = e.offline ? 'Sin conexión. Se muestra el último listado guardado en el móvil.' : e.message;
     $('homeStatus').hidden = false;
@@ -1570,6 +1619,7 @@ async function loadObras() {
 }
 
 function renderHome() {
+  renderDrafts();
   // Visita en curso
   const cur = hasVisitContent() && V.obra;
   $('homeCurrent').hidden = !cur;
@@ -1585,7 +1635,8 @@ function renderHome() {
   for (const o of OBRAS) {
     const n = Number(o.n_visitas) || 0;
     const info = n ? `${n} ${n === 1 ? 'visita' : 'visitas'}, la última el ${fechaCorta2(o.ultima_fecha)}` : 'Sin visitas guardadas';
-    box.append(el('button', { class: 'obra-card', type: 'button', onclick: () => openObra(o.id) },
+    const sel = current === 'obra' && OB && OB.id === o.id;
+    box.append(el('button', { class: 'obra-card' + (sel ? ' sel' : ''), type: 'button', 'aria-current': sel ? 'true' : null, onclick: () => openObra(o.id) },
       el('b', {}, o.nombre), o.direccion ? el('span', {}, o.direccion) : null, el('small', {}, info)));
   }
 }
@@ -1614,6 +1665,7 @@ async function openObra(id) {
   OB = OBRAS.find(o => o.id === id); if (!OB) { renderHome(); show('home'); return; }
   renderObraHead();
   show('obra');
+  renderHome();
   await loadVisitas();
 }
 async function loadVisitas() {
@@ -1639,6 +1691,7 @@ async function loadVisitas() {
       el('p', { class: 'vis-r' }, V.informe ? 'Informe preparado, falta crear el PDF y guardarlo.' : 'Todavía sin informe.'),
       el('button', { class: 'btn primary wide', type: 'button', onclick: continueVisit }, 'Continuar')));
   }
+  for (const d of DRAFTS.filter(d => d.obra_id === obraId && d.id !== V.id)) box.append(draftCard(d, true));
   if (!visitas.length) { box.append(el('p', { class: 'empty' }, 'Aún no hay visitas guardadas en esta obra.')); return; }
   const emp = settings().empresa || 'Contratista';
   for (const v of visitas) {
@@ -1894,6 +1947,125 @@ $('btnBackup').addEventListener('click', async () => {
     $('backupMsg').textContent = `Copia guardada en Cloudflare (${r.key}): ${r.obras} obras, ${r.visitas} visitas y ${r.pendientes} pendientes.`;
   } catch (e) { $('backupMsg').textContent = e.message; }
 });
+
+// ---------- Continuar una visita en otro dispositivo ----------
+// La visita (datos, audio, fotos y PDF) se sube a Cloudflare y se quita de este dispositivo.
+// El otro dispositivo la ve en el inicio y en la ficha de la obra, la descarga y la borra de Cloudflare.
+let DRAFTS = [];
+const deviceName = () => /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) ? 'móvil' : 'ordenador';
+const fechaHora = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }); };
+
+async function loadDrafts() {
+  try { DRAFTS = (await api('/borradores')).borradores || []; } catch { return; }
+  renderDrafts();
+}
+function draftCard(d, enObra) {
+  return el('div', { class: 'vis cur' },
+    el('div', { class: 'vis-h' }, el('b', {}, enObra ? `Visita ${d.num || ''} en otro dispositivo` : `${d.obra}${d.num ? ', visita ' + d.num : ''}`)),
+    el('p', { class: 'vis-r' }, `${d.etapa}. Enviada desde el ${d.dispositivo || 'otro dispositivo'} el ${fechaHora(d.actualizado)}.`),
+    el('div', { class: 'row-btns' },
+      el('button', { class: 'btn primary', type: 'button', onclick: () => takeDraft(d) }, 'Continuar aquí'),
+      el('button', { class: 'btn', type: 'button', onclick: () => dropDraft(d) }, 'Descartar')));
+}
+function renderDrafts() {
+  const list = DRAFTS.filter(d => d.id !== V.id);
+  $('draftsBox').hidden = !list.length;
+  const box = $('draftsList'); box.innerHTML = '';
+  for (const d of list) box.append(draftCard(d, false));
+}
+
+async function sendToOtherDevice(skipConfirm) {
+  if (rec.on || busy) return;
+  if (!skipConfirm && !confirm('La visita (audio, fotos e informe) se subirá a Cloudflare para continuarla en otro dispositivo, y se quitará de este. ¿Continuar?')) return;
+  retryFn = () => sendToOtherDevice(true);
+  const ids = [...V.audios, ...V.notas, ...V.fotos].map(x => x.id);
+  const pdf = await idb.get('pdf');
+  const total = ids.length + (pdf ? 1 : 0);
+  steps = [{ label: 'Subir la visita a Cloudflare', state: 'run', detail: `0 de ${total} archivos` }];
+  renderSteps(); $('progErr').hidden = true; $('progBtns').hidden = true; $('progHint').hidden = false;
+  show('progress'); busy = true; keepAwake(true);
+  try {
+    let n = 0;
+    for (const id of ids) {
+      const b = await idb.get('b:' + id);
+      if (b) await api(`/borradores/${V.id}/archivos/${id}`, b, b.type || 'application/octet-stream', 'PUT');
+      setStep(0, 'run', `${++n} de ${total} archivos`);
+    }
+    if (pdf) { await api(`/borradores/${V.id}/archivos/pdf`, pdf, 'application/pdf', 'PUT'); setStep(0, 'run', `${++n} de ${total} archivos`); }
+    // Los datos se suben al final: la visita solo aparece en el otro dispositivo cuando está completa
+    await api(`/borradores/${V.id}`, JSON.stringify({ visita: V, dispositivo: deviceName(), pdf: Boolean(pdf), pdfName: pdf ? pdf.name : '' }), 'application/json', 'PUT');
+    setStep(0, 'ok', 'Subida completa');
+    const obraId = V.obraId;
+    await clearVisit();
+    busy = false;
+    toast('Visita enviada. En el otro dispositivo aparecerá en el inicio y en la ficha de la obra.', 4500);
+    await loadDrafts();
+    if (obraId && OBRAS.some(o => o.id === obraId)) openObra(obraId); else { renderHome(); show('home'); }
+  } catch (e) {
+    setStep(0, 'err');
+    $('progErr').textContent = e.message + ' La visita sigue en este dispositivo.'; $('progErr').hidden = false;
+    $('progBtns').hidden = false; $('progHint').hidden = true;
+  } finally { busy = false; keepAwake(false); }
+}
+$('btnHandoff').addEventListener('click', () => sendToOtherDevice(false));
+$('btnHandoff2').addEventListener('click', () => sendToOtherDevice(false));
+
+async function takeDraft(d, skipConfirm) {
+  if (rec.on || busy) return;
+  if (!skipConfirm && hasVisitContent()) {
+    const aviso = V.guardada ? `La visita en curso en este dispositivo (${V.obra}) ya está guardada en el historial y se cerrará.`
+      : `En este dispositivo hay una visita en curso de ${V.obra} que NO está guardada en el historial y se perderá.`;
+    if (!confirm(aviso + ' ¿Continuar aquí la visita enviada?')) return;
+  }
+  retryFn = () => takeDraft(d, true);
+  steps = [{ label: 'Descargar la visita de Cloudflare', state: 'run', detail: 'Preparando…' }];
+  renderSteps(); $('progErr').hidden = true; $('progBtns').hidden = true; $('progHint').hidden = false;
+  show('progress'); busy = true; keepAwake(true);
+  try {
+    const r = await api('/borradores/' + d.id);
+    const vis = r.visita;
+    const ids = [...(vis.audios || []), ...(vis.notas || []), ...(vis.fotos || [])].map(x => x.id);
+    const total = ids.length + (r.pdf ? 1 : 0);
+    const blobs = [];
+    let n = 0;
+    for (const id of ids) {
+      const { blob } = await api(`/borradores/${d.id}/archivos/${id}`, null, null, 'GET', 'blob');
+      blobs.push([id, blob]); setStep(0, 'run', `${++n} de ${total} archivos`);
+    }
+    let pdf = null;
+    if (r.pdf) {
+      const { blob } = await api(`/borradores/${d.id}/archivos/pdf`, null, null, 'GET', 'blob');
+      pdf = new File([blob], r.pdfName || 'informe.pdf', { type: 'application/pdf' }); setStep(0, 'run', `${++n} de ${total} archivos`);
+    }
+    // Todo descargado: ahora sí se sustituye la visita local
+    await clearVisit({ ...newVisit(), ...vis });
+    for (const [id, blob] of blobs) await idb.put('b:' + id, blob);
+    if (pdf) { await idb.put('pdf', pdf); lastPdf = pdf; }
+    await saveNow();
+    await api('/borradores/' + d.id, null, null, 'DELETE');
+    DRAFTS = DRAFTS.filter(x => x.id !== d.id);
+    setStep(0, 'ok', 'Descarga completa');
+    busy = false;
+    fillFields(); await renderThumbs('notas'); await renderThumbs('fotos'); renderSegs(); updateTimer(); levels = []; drawTape();
+    if (V.informe && V.stage !== 'capture') renderReview();
+    toast('Visita recuperada en este dispositivo.');
+    continueVisit();
+    if (V.pdfPendiente) syncVisit();
+  } catch (e) {
+    setStep(0, 'err');
+    $('progErr').textContent = e.message; $('progErr').hidden = false;
+    $('progBtns').hidden = false; $('progHint').hidden = true;
+  } finally { busy = false; keepAwake(false); }
+}
+async function dropDraft(d) {
+  if (!confirm(`Se eliminará de Cloudflare la visita ${d.num || ''} de ${d.obra} enviada desde el ${d.dispositivo}, con su audio, fotos e informe. No está guardada en el historial. ¿Descartarla?`)) return;
+  try {
+    await api('/borradores/' + d.id, null, null, 'DELETE');
+    DRAFTS = DRAFTS.filter(x => x.id !== d.id);
+    renderDrafts(); if (current === 'obra') loadVisitas();
+    toast('Visita descartada.');
+  } catch (e) { alert(e.message); }
+}
 
 $('btnBack').addEventListener('click', goBack);
 
